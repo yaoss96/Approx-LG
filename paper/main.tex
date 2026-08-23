@@ -1,6 +1,10 @@
-% TODAES journal format.  For the camera-ready drop "review" (line numbers)
-% and "anonymous" (author suppression) and fill in the author block below;
-% for a double-spaced reviewing copy swap "acmsmall" for "manuscript".
+% TODAES journal format.  TODAES requires submissions to be prepared for
+% double-anonymous review from 1 March 2026, so "anonymous" stays on and the
+% author block below stays a placeholder.  For the camera-ready drop "review"
+% (line numbers) and "anonymous" and paste in the real block, which is kept in
+% paper/authors_cameraready.tex and gitignored so that it never reaches the
+% anonymised review mirror; for a double-spaced reviewing copy swap "acmsmall"
+% for "manuscript".
 \documentclass[acmsmall,review,anonymous]{acmart}
 
 % acmart already provides graphicx, booktabs, amsmath, amssymb, hyperref, url
@@ -556,7 +560,10 @@ same random initialisation; per-arm seed counts are given in each table.  The
 LLM endpoint is DeepSeek (\texttt{\LLMname}) with extended thinking disabled.
 Experiments ran on a 32-core workstation with an RTX~4060, every tool is open
 source and the rest pure Python, so the campaign reproduces without an EDA
-licence.
+licence.  The framework, the campaign drivers, the analysis scripts and the
+search traces every figure and table in this paper is computed from are
+available for review at
+\url{https://anonymous.4open.science/r/Approx-LG-71AA/}.
 
 \textbf{Cost.}  Wall-clock time is reported per component, not per run, because
 the persistent characterisation cache makes a run's measured time depend on
@@ -609,6 +616,43 @@ percentile of \NullEightN\%; for the guided arm, whose runs are more variable,
 the 95th percentile is \NullEight\%.  At $16\times16$ it is \NullSixteen\%.
 Any effect inside that band is not evidence, whatever its $p$-value, and we
 say so where it applies rather than leaning on the threshold.
+
+\subsection{The primary comparison}
+\label{sec:primary}
+Every other arm in this section differs from the guided one in more than the
+model's content.  The endpoint fixed in Section~\ref{sec:stats} does not: the
+guided arm and the sham arm of Section~\ref{sec:controls} walk the same control
+flow, ask the same questions at the same points and differ only in whether the
+answers are used, so what separates them is what the answers \emph{say}.  The
+two arms share \ShamSixteenUN\ seeds at each width and pair by seed.  On the
+$16\times16$ unsigned template guidance is worth \ShamSixteenU\% of final
+hypervolume (95\% bootstrap CI \ShamSixteenUCI), winning \ShamSixteenUWins\
+pairs at an exact Wilcoxon $p\le\ShamSixteenUP$, which Holm's correction within
+the primary family leaves at $\le\ShamSixteenUHolm$, and
+$\hat{A}_{12}=\ShamSixteenUA$.  On the signed template it is \ShamSixteenS\%
+(CI \ShamSixteenSCI, \ShamSixteenSWins\ pairs, $p\le\ShamSixteenSHolm$
+corrected, $\hat{A}_{12}=\ShamSixteenSA$).  At $8\times8$ the point estimate is
+just as large, \ShamEight\% (CI \ShamEightCI, \ShamEightWins\ pairs), but the
+interval covers zero and the test does not reject: $p=\ShamEightP$, which the
+correction leaves at $p=\ShamEightHolm$, with $\hat{A}_{12}=\ShamEightA$.
+
+The $8\times8$ number is not a small effect measured precisely, and the null
+band of Section~\ref{sec:stats} disposes of it without appeal to any threshold:
+scoring one arm's runs against a random split of themselves produces absolute
+differences with a median of \NullEightMed\% and a 95th percentile of
+\NullEight\% for the guided arm (\NullEightN\% for NSGA-II), so a difference of
+\ShamEight\% is inside the range this pipeline manufactures from nothing.  We
+therefore do not claim it, at either sign of the effect.  At $16\times16$ the
+band is \NullSixteen\%: the unsigned interval lies above it entirely, while the
+signed effect clears it as a point estimate with an interval that still reaches
+into it.  The claim the paper carries is accordingly the narrow one.  On the
+larger template, where $500$ evaluations leave the space far from exhausted,
+the content of the model's answers -- not the loop that fetches them -- is worth
+a real and repeatable gain in hypervolume; at $8\times8$, where the space is
+small enough that the standard operators find the same front on their own, we
+have no evidence that it is worth anything.  Everything from
+Section~\ref{sec:ablation} onwards is secondary by construction, and is read as
+description rather than as confirmation.
 
 \subsection{Search efficiency and ablation}
 \label{sec:ablation}

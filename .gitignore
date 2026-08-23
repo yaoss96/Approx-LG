@@ -46,3 +46,6 @@ paper/Approx-LG.pdf
 
 # Superseded IEEE-conference draft; the live source is paper/main.tex.
 paper/main_ieee_conference.tex
+
+# Camera-ready author block, kept out of the anonymised mirror.
+paper/authors_cameraready.tex

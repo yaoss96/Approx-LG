@@ -38,7 +38,7 @@ results/            raw measurements (jsonl) and caches
 ## Getting started
 
 ```bash
-git clone https://github.com/yaoss96/Approx-LG.git
+git clone <this repository>
 cd Approx-LG
 python -m pip install numpy cupy-cuda12x requests matplotlib scikit-image \
                       torch torchvision

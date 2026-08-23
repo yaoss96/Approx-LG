@@ -222,6 +222,7 @@ if os.path.exists(f):
         mac(f"Sham{k}Holm", _fmtp(r["p_holm"]))
         mac(f"Sham{k}N", r["n"])
         mac(f"Sham{k}Wins", f"{r['wins']}/{r['npairs']}")
+        mac(f"Sham{k}A", f"{r['a12']:.2f}")
     nb = st_.get("null", {})
     if "approxlg 8x8" in nb:
         mac("NullEight", f"{nb['approxlg 8x8']['p95']:.2f}")
@@ -1057,6 +1058,7 @@ defaults = {
     "ShamSixteenUHolm": "1", "ShamSixteenUN": "0", "ShamSixteenUWins": "--",
     "ShamSixteenS": "0", "ShamSixteenSCI": "--", "ShamSixteenSP": "1",
     "ShamSixteenSHolm": "1", "ShamSixteenSN": "0", "ShamSixteenSWins": "--",
+    "ShamEightA": "0", "ShamSixteenUA": "0", "ShamSixteenSA": "0",
     "NullEight": "0", "NullEightMed": "0", "NullEightN": "0",
     "NullSixteen": "0", "LLMvsExpertHolm": "1",
     "ExpertVsSham": "0", "ExpertVsShamHolm": "1",
