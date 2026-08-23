@@ -1,0 +1,48 @@
+# --- Python ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+
+# --- native toolchain -----------------------------------------------------
+# OSS CAD Suite (yosys, abc, iverilog) is fetched separately, see README.
+oss-cad-suite/
+oss-cad-suite*.tgz
+
+# --- standard-cell library ------------------------------------------------
+# The Nangate45 Liberty file is third-party and carries its own licence
+# header, so it is not redistributed here.  See lib/README.md.
+lib/*.lib
+lib/*.v
+lib/nangate45.json
+
+# --- experiment data ------------------------------------------------------
+# Left out of the repository: rebuilt by the scripts, or too large to ship.
+# Per-design evaluation cache, rebuilt by run_search.py:
+results/designs_*.jsonl
+# Raw LLM request/response transcripts:
+results/llm_*.jsonl
+# Synthesis cache, keyed by netlist SHA-1 (the small libs one is kept):
+results/ppa_cache_*.json
+!results/ppa_cache_libs.json
+# Gate-level JSON of third-party RTL, MNIST download, old snapshots:
+results/libjson/
+results/mnist/
+results/backup/
+# Run logs, they contain machine-local absolute paths:
+results/log_*.txt
+
+# --- paper build artefacts ------------------------------------------------
+paper/main_build.*
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/Approx-LG.pdf
+
+# --- misc -----------------------------------------------------------------
+.DS_Store
+*.swp
+
+# Superseded IEEE-conference draft; the live source is paper/main.tex.
+paper/main_ieee_conference.tex

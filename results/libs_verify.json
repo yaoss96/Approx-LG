@@ -1,0 +1,603 @@
+[
+ {
+  "name": "ALM_SOA",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "APP_APP2",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "APP_APP",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "AW",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ApproxLP_ApproxLP0",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "ApproxLP_ApproxLP1",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "ApproxLP_ApproxLP2",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "BAM",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "DRUM",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "IALM_SL",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ImprLM",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "IterLM",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "LM",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "OAM_L0",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "OAM_L1",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "OAM_L2",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "OAM_L3",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "OAM_L4",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "R4ABE1",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABE2",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ACC",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4SA",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R8ACC",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R8ATM",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "RMAC",
+  "lib": "AM-Lib",
+  "status": "interface"
+ },
+ {
+  "name": "SSM",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "UDM",
+  "lib": "AM-Lib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "HRALM2",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "HRALM3",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "HRALM4",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "LOBO_10_12_6",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "LOBO_10_8_6",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "LOBO_12_12_8",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "LOBO_12_8_8",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ALM_SOA_W10",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ALM_SOA_W11",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ALM_SOA_W12",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ALM_SOA_W13",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ASROBA",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "DRALM_W4",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "DRALM_W5",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "DRUM6_16_s",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ILM_AE",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "MITCHEL",
+  "lib": "MulApprox",
+  "status": "undefined-output"
+ },
+ {
+  "name": "MITCH_TRUNC_W6_C1",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "MITCH_TRUNC_W6_C2",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "MITCH_TRUNC_W8_C1",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "MITCH_TRUNC_W8_C2",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "ROBA",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "TL16_6_4",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "TL16_7_4",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "TL16_8_4",
+  "lib": "MulApprox",
+  "status": "no-netlist"
+ },
+ {
+  "name": "HLR_BM2",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABM1p14",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABM1p16",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABM1p20",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABM1p24",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABM2p14",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABM2p16",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABM2p20",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "R4ABM2p24",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "RAD1024",
+  "lib": "MulApprox",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_0ZG",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_34S",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_60L",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_BMC",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_FGN",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_GZ7",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_HF0",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_5FA",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_8VH",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_AQ1",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_CK3",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_DAE",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_F6B",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_GPF",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_HGP",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_3BB",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_6NY",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_A7Z",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_EHF",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_FGL",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_HGK",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_52B",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_679",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_94L",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_C37",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_G9P",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_GPE",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_H6G",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_3HJ",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_4YJ",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16u_CG0",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_G7F",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_G7Z",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_G80",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_GAT",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_HDG",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_HEB",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_HFZ",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_GK2",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ },
+ {
+  "name": "mul16s_HHP",
+  "lib": "EvoApproxLib",
+  "status": "match",
+  "bad": 0
+ }
+]

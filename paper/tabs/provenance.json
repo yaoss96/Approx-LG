@@ -1,0 +1,78 @@
+{
+ "memorisation": {
+  "approxlg": {
+   "front_points": 1985,
+   "distinct": 1282,
+   "exact_matches": 0
+  },
+  "nsga2_expert": {
+   "front_points": 2040,
+   "distinct": 1097,
+   "exact_matches": 0
+  },
+  "approxlg_sham": {
+   "front_points": 1935,
+   "distinct": 1107,
+   "exact_matches": 0
+  },
+  "nsga2_rf": {
+   "front_points": 2051,
+   "distinct": 1156,
+   "exact_matches": 0
+  },
+  "nsga2": {
+   "front_points": 1912,
+   "distinct": 1057,
+   "exact_matches": 0
+  }
+ },
+ "discarded": {
+  "n8L/approxlg": {
+   "discarded": 20,
+   "rerun": 20,
+   "missing": []
+  },
+  "n8abl/approxlg_no_inject": {
+   "discarded": 10,
+   "rerun": 10,
+   "missing": []
+  },
+  "n8abl/approxlg_no_mutguide": {
+   "discarded": 15,
+   "rerun": 15,
+   "missing": []
+  },
+  "n8abl/approxlg_no_refine": {
+   "discarded": 15,
+   "rerun": 15,
+   "missing": []
+  },
+  "n8abl/approxlg_no_warm": {
+   "discarded": 10,
+   "rerun": 10,
+   "missing": []
+  },
+  "n8t02/approxlg": {
+   "discarded": 2,
+   "rerun": 0,
+   "missing": [
+    6,
+    7
+   ]
+  },
+  "n8t12/approxlg": {
+   "discarded": 8,
+   "rerun": 0,
+   "missing": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ]
+  }
+ }
+}

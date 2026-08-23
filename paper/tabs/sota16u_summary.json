@@ -1,0 +1,17 @@
+{
+ "n": 40,
+ "wins_adp": 39,
+ "wins_pdp": 39,
+ "wins_both": 39,
+ "wins_any": 39,
+ "rate_adp": 97.5,
+ "rate_pdp": 97.5,
+ "rate_both": 97.5,
+ "rate_any": 97.5,
+ "mean_adp": 46.541963450598985,
+ "median_adp": 38.993179488396756,
+ "mean_pdp": 44.67999697806815,
+ "median_pdp": 34.67928204055932,
+ "max_adp": 94.36067061773595,
+ "max_pdp": 92.03294391462167
+}

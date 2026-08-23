@@ -1,0 +1,22 @@
+--- unsigned 8x8 ---
+design  0: T= 0 A= 0 k= 0 cells= 42 -> OK 
+design  1: T= 4 A= 9 k= 0 cells= 34 -> OK 
+design  2: T= 0 A= 9 k= 2 cells= 33 -> OK 
+design  3: T= 2 A= 6 k= 2 cells= 37 -> OK 
+design  4: T= 0 A= 2 k= 0 cells= 42 -> OK 
+design  5: T= 3 A= 5 k= 5 cells= 35 -> OK 
+design  6: T=12 A= 2 k= 0 cells=  2 -> OK 
+design  7: T= 6 A= 4 k= 4 cells= 28 -> OK 
+
+8/8 designs bit-exact against Icarus Verilog
+--- signed 8x8 ---
+design  0: T= 0 A= 0 k= 0 cells= 42 -> OK 
+design  1: T= 4 A= 9 k= 0 cells= 34 -> OK 
+design  2: T= 0 A= 9 k= 2 cells= 35 -> OK 
+design  3: T= 2 A= 6 k= 2 cells= 38 -> OK 
+design  4: T= 0 A= 2 k= 0 cells= 42 -> OK 
+design  5: T= 3 A= 5 k= 5 cells= 35 -> OK 
+design  6: T=12 A= 2 k= 0 cells=  2 -> OK 
+design  7: T= 6 A= 4 k= 4 cells= 29 -> OK 
+
+8/8 designs bit-exact against Icarus Verilog

@@ -1,0 +1,18 @@
+--- unsigned 16x16 ---
+design  0: T= 0 A= 0 k= 0 cells=210 -> OK 
+design  1: T= 9 A=17 k= 0 cells=149 -> OK 
+design  2: T=13 A= 8 k= 5 cells=127 -> OK 
+design  3: T=21 A= 7 k= 2 cells= 34 -> OK 
+design  4: T=17 A=10 k= 9 cells= 67 -> OK 
+design  5: T=24 A= 5 k= 1 cells= 12 -> OK 
+
+6/6 designs bit-exact against Icarus Verilog
+--- signed 16x16 ---
+design  0: T= 0 A= 0 k= 0 cells=210 -> OK 
+design  1: T= 9 A=17 k= 0 cells=149 -> OK 
+design  2: T=13 A= 8 k= 5 cells=129 -> OK 
+design  3: T=21 A= 7 k= 2 cells= 34 -> OK 
+design  4: T=17 A=10 k= 9 cells= 67 -> OK 
+design  5: T=24 A= 5 k= 1 cells= 12 -> OK 
+
+6/6 designs bit-exact against Icarus Verilog

@@ -1,0 +1,8 @@
+* text=auto
+*.sh    text eol=lf
+*.py    text eol=lf
+*.tex   text eol=lf
+*.bib   text eol=lf
+*.v     text eol=lf
+*.jsonl text eol=lf
+*.pdf   binary

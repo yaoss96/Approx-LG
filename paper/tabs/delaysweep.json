@@ -1,0 +1,42 @@
+[
+ {
+  "recipe": "default",
+  "label": "delay-driven, area recovery (as reported)",
+  "pairs": 78,
+  "wins": 68,
+  "rate": 87.17948717948718,
+  "median_reduction": 33.80533037606132
+ },
+ {
+  "recipe": "delay",
+  "label": "delay-driven, no area recovery",
+  "pairs": 78,
+  "wins": 65,
+  "rate": 83.33333333333333,
+  "median_reduction": 22.640260613174767
+ },
+ {
+  "recipe": "balanced",
+  "label": "delay-driven, half area recovery",
+  "pairs": 78,
+  "wins": 65,
+  "rate": 83.33333333333333,
+  "median_reduction": 26.480882860749155
+ },
+ {
+  "recipe": "area",
+  "label": "area mode",
+  "pairs": 78,
+  "wins": 65,
+  "rate": 83.33333333333333,
+  "median_reduction": 31.38780937381432
+ },
+ {
+  "recipe": "amap",
+  "label": "area-oriented mapper",
+  "pairs": 78,
+  "wins": 66,
+  "rate": 84.61538461538461,
+  "median_reduction": 29.5806516365518
+ }
+]
