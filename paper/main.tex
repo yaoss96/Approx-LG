@@ -1063,6 +1063,23 @@ number mostly belongs.
 We would urge anyone reporting LLM-guided optimisation to run the placebo and
 the fixed-prior control before concluding that the model is what helped.
 
+% ACM requires generative-AI use to be disclosed in the Work, and suggests the
+% acknowledgements for it.  Under the "anonymous" class option acmart runs
+% \excludecomment{acks}, so anything placed there would vanish from the
+% submitted PDF; the disclosure is therefore a section of its own, which
+% survives anonymisation and names no author, institution or sponsor.  It can
+% be folded into \begin{acks} for the camera-ready.
+\section*{Disclosure of Generative AI Use}
+Generative AI assistants were used in preparing this manuscript: to draft and
+revise portions of the text, and to write and maintain parts of the analysis,
+figure and table generation code released with the artefact.  The measurements
+are not theirs: every quantity reported here is produced by the simulation and
+synthesis flow of Section~\ref{sec:eval}, and the values quoted in the text are
+emitted into it by that pipeline rather than typed in by hand.  The authors have
+verified the content and take full responsibility for it.  This statement
+concerns the preparation of the paper, and is separate from the language model
+that is the object of study in Section~\ref{sec:llm}.
+
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{refs}
 
