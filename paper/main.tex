@@ -76,8 +76,8 @@ wall clock rather than evaluations the guided arm \emph{loses} on this flow, by
 \EqTimeNSGA\% against NSGA-II given the same seconds, and only becomes
 worthwhile once one characterisation costs about \BreakEvenNSGA\,s.  Against
 \NrefSixteen\ published designs the fronts win \SotaSixteenADP\% on area--delay
-product at equal accuracy -- but the sham arm alone already wins 82\%, so most
-of that belongs to the template and the flow.
+product at equal accuracy -- but the sham arm alone already wins
+\SotaShamSixteenADP\%, so most of that belongs to the template and the flow.
 \end{abstract}
 
 % Regenerate from the ACM CCS tool (dl.acm.org/ccs) before submission; the
@@ -442,8 +442,8 @@ operators do not supply, so it consumes a different sequence of random draws
 and tops up generations differently.  Any guided configuration can therefore be
 run in \emph{sham} mode, in which every operator is invoked, asks its question,
 walks its own code path and receives nothing back.  That isolates the model's
-content from the control flow carrying it, and Section~\ref{sec:exp} uses the
-sham arm as the primary comparison.  The two cannot consume identical random
+content from the control flow carrying it, and Section~\ref{sec:primary} uses
+the sham arm as the primary comparison.  The two cannot consume identical random
 streams -- an operator returning six candidates and one returning none diverge
 by construction -- so this is the closest achievable control, not a perfect
 one.
@@ -590,6 +590,8 @@ width.  Everything else -- the reference baselines, the prior sources, the
 ablation, the reference boxes -- is secondary, and each of those families is
 corrected within itself by Holm's step-down procedure, which assumes nothing
 about the dependence between the tests it corrects.
+Section~\ref{sec:primary} reports that one comparison, ahead of every secondary
+family.
 
 \textbf{Pairing and the test.}  A seed also seeds the initial population, which
 the same sampler draws for every arm, so runs pair by seed and the paired test
@@ -802,12 +804,41 @@ one template of two.
 
 \subsection{\texorpdfstring{Scaling to $16\times16$}{Scaling to 16x16}}
 \label{sec:hv16}
+
+\begin{table}[t]
+\caption{Search performance at $16\times16$ ($B=500$), unsigned above and
+signed below.  Columns are those of Table~\ref{tab:search}.  These are the arms
+the primary comparison of Section~\ref{sec:primary} pairs by seed.}
+\label{tab:search16}
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccc}
+\toprule
+method & runs & hypervolume & $|PF|$ & evals.\ to & time\\
+       &      &             &        & NSGA-II HV & (s)\\
+\midrule
+\multicolumn{6}{l}{\emph{unsigned}}\\
+\input{tabs/search_n16u}
+\midrule
+\multicolumn{6}{l}{\emph{signed}}\\
+\input{tabs/search_n16s}
+\bottomrule
+\end{tabular}
+
+\smallskip
+{\footnotesize $^{\dagger}$~difference to Approx-LG significant at $p<0.05$
+(Mann--Whitney~U).  Random search is run at fewer seeds because it is not a
+contender for the endpoint.}
+\end{table}
+
 At $16\times16$ the genome has \GenesSixteen\ entries instead of \GenesEight,
 $500$ evaluations are far from saturating the space, and the template is a
 different one, signed in half the runs.  This is the transfer test the
 $8\times8$ result asks for: the rule was stated once in general terms and is
 applied here unchanged, while the model is asked the same question about a
-different circuit.  \SixteenText
+different circuit.  Table~\ref{tab:search16} gives both templates arm by arm,
+including the sham arm that Section~\ref{sec:primary} pairs against.
+\SixteenText
 
 \subsection{The budget the paper counts, and the one a user pays}
 \label{sec:walltime}
@@ -1028,8 +1059,9 @@ about half of it with no inference at all; and under a wall-clock budget on an
 open flow it is negative, turning positive only where a characterisation costs
 about \BreakEvenNSGA\,s or more.  Every candidate stays correct by construction
 and the fronts beat \SotaSixteenADP\% of \NrefSixteen\ published designs at
-equal \nmed{} \emph{and} MRE -- though an arm with no model in it reaches 82\%
-of the same library, which is where the credit for that number mostly belongs.
+equal \nmed{} \emph{and} MRE -- though an arm with no model in it reaches
+\SotaShamSixteenADP\% of the same library, which is where the credit for that
+number mostly belongs.
 We would urge anyone reporting LLM-guided optimisation to run the placebo and
 the fixed-prior control before concluding that the model is what helped.
 

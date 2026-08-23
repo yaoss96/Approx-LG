@@ -74,6 +74,13 @@ STEPS = [
      "--signed-tags", "n16s", "--match-signed", "--algos", "approxlg",
      "--refs", "libs_n16.jsonl", "--name", "sota16", "--select", "8",
      "--nmed-min", "1e-12"],
+    # The placebo front against the same library.  The abstract and the
+    # conclusion quote this rate to say how much of the SOTA result is the
+    # template rather than the model, so it has to be rebuilt with the rest.
+    ["scripts/analyze_sota.py", "--front", "n16u", "n16s",
+     "--signed-tags", "n16s", "--match-signed", "--algos", "approxlg_sham",
+     "--refs", "libs_n16.jsonl", "--name", "sota16_approxlg_sham",
+     "--select", "8", "--nmed-min", "1e-12"],
     ["scripts/make_numbers.py"],
     ["scripts/build_paper.py"],
 ]

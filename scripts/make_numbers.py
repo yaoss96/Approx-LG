@@ -587,7 +587,8 @@ mac("NlibUsed", sum(1 for r in ok if 1e-12 <= r["NMED"] <= 0.10))
 
 # ---------------------------------------------------------------- SOTA
 for key, name in (("Eight", "sota8"), ("Sixteen", "sota16"),
-                  ("SixteenU", "sota16u"), ("SixteenS", "sota16s")):
+                  ("SixteenU", "sota16u"), ("SixteenS", "sota16s"),
+                  ("ShamSixteen", "sota16_approxlg_sham")):
     f = os.path.join(TABS, f"{name}_summary.json")
     if not os.path.exists(f):
         continue
@@ -1005,6 +1006,10 @@ defaults = {
     "PairedGainTen": "0", "LeadFrom": "0",
     "UnpairedP": "1.00", "EffectA": "0.50", "PriorEps": "0.25",
     "NrefAll": "0", "SotaAllADP": "0", "SotaAllPDP": "0",
+    "NrefShamSixteen": "0", "SotaShamSixteenADP": "0",
+    "SotaShamSixteenPDP": "0", "SotaShamSixteenAny": "0",
+    "MedianADPShamSixteen": "0", "MedianPDPShamSixteen": "0",
+    "MeanADPShamSixteen": "0",
     "NrefAm": "0", "SotaAm": "0", "NrefMul": "0", "SotaMul": "0",
     "NrefEvo": "0", "SotaEvo": "0",
     "AblationText": "", "AppsText": "",
