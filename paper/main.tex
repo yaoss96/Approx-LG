@@ -80,31 +80,29 @@ product at equal accuracy -- but the sham arm alone already wins
 \SotaShamSixteenADP\%, so most of that belongs to the template and the flow.
 \end{abstract}
 
-% Regenerate from the ACM CCS tool (dl.acm.org/ccs) before submission; the
-% concept identifiers below are the closest matches we could place by hand.
 \begin{CCSXML}
 <ccs2012>
- <concept>
-  <concept_id>10010583.10010588</concept_id>
-  <concept_desc>Hardware~Electronic design automation</concept_desc>
-  <concept_significance>500</concept_significance>
- </concept>
- <concept>
-  <concept_id>10010147.10010178.10010187</concept_id>
-  <concept_desc>Computing methodologies~Search methodologies</concept_desc>
-  <concept_significance>500</concept_significance>
- </concept>
- <concept>
-  <concept_id>10010583.10010600.10010628</concept_id>
-  <concept_desc>Hardware~Arithmetic and datapath circuits</concept_desc>
-  <concept_significance>300</concept_significance>
- </concept>
+<concept>
+<concept_id>10010583.10010682</concept_id>
+<concept_desc>Hardware~Electronic design automation</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010583.10010600.10010615.10010616</concept_id>
+<concept_desc>Hardware~Integrated circuits~Logic circuits~Arithmetic and datapath circuits</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010178.10010205</concept_id>
+<concept_desc>Computing methodologies~Artificial intelligence~Search methodologies</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
 </ccs2012>
 \end{CCSXML}
 
 \ccsdesc[500]{Hardware~Electronic design automation}
-\ccsdesc[500]{Computing methodologies~Search methodologies}
-\ccsdesc[300]{Hardware~Arithmetic and datapath circuits}
+\ccsdesc[500]{Hardware~Integrated circuits~Logic circuits~Arithmetic and datapath circuits}
+\ccsdesc[300]{Computing methodologies~Artificial intelligence~Search methodologies}
 
 \keywords{Approximate computing, approximate multiplier, design space
 exploration, large language model, NSGA-II, logic synthesis, multi-objective
@@ -1016,7 +1014,7 @@ accuracy in each column.  The images in a column look the same as each other.}
 pair: an Approx-LG design (top, red border) above the published design of
 matching \nmed{} (bottom); accuracy decreases left to right.  Panel labels give
 the PSNR against the exact multiplier and the power--delay product, both taken
-from Table~\ref{tab:apps}, so the figure and the table cannot drift; the PSNR
+from Table~\ref{tab:apps}; the PSNR
 averages the six standard images while one of them is shown.  The claim the
 figure makes is the energy one, and it holds in every column: the Approx-LG
 design costs 30 to 54\% less while the two images are indistinguishable.  It
