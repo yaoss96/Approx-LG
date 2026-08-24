@@ -133,13 +133,15 @@ for tag, algo, key in (("n8L", "approxlg", "Eight"),
                        ("n8", "nsga2", "NsgaEightG"),
                        ("n16u", "approxlg", "SixteenU"),
                        ("n16u", "approxlg_sham", "ShamSixteenUG"),
-                       ("n16u", "nsga2", "NsgaSixteenUG")):
+                       ("n16u", "nsga2", "NsgaSixteenUG"),
+                       ("n16upro", "approxlg", "ProFullG")):
     rs = load_search([tag]).get(algo, [])
     if rs:
         mac(f"Gens{key}", f"{np.mean([len(r['hv_trace']) for r in rs]):.0f}")
         st = [r["llm"] for r in rs if r.get("llm")]
         if st:
             mac(f"Calls{key}", f"{np.mean([x['calls'] for x in st]):.0f}")
+            mac(f"Sec{key}", f"{np.mean([x['seconds'] for x in st]):.0f}")
 mac("Budget", 400)
 from approxlg.llm import ModePrior                            # noqa: E402
 mac("PriorEps", f"{ModePrior().epsilon:g}")
@@ -1191,6 +1193,7 @@ defaults = {
     "NullEightSE": "0", "NullSixteenSE": "0",
     "GensShamEightG": "0", "GensNsgaEightG": "0",
     "GensShamSixteenUG": "0", "GensNsgaSixteenUG": "0",
+    "GensProFullG": "0", "CallsProFullG": "0", "SecProFullG": "0",
     "NullSixteen": "0", "LLMvsExpertHolm": "1",
     "ExpertVsSham": "0", "ExpertVsShamHolm": "1",
     "GAvsRandom": "0", "GAvsRandomP": "1",

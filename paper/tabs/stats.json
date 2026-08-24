@@ -442,6 +442,20 @@
    "a12": 0.495,
    "what": "a larger model vs the default endpoint",
    "p_holm": 1.0
+  },
+  {
+   "n": 20,
+   "delta": -0.5494193653320777,
+   "ci": [
+    -1.4744198216783018,
+    0.3857002850863187
+   ],
+   "p": 0.26109886169433594,
+   "wins": 10,
+   "npairs": 20,
+   "a12": 0.4025,
+   "what": "a larger model, whole system (unsigned)",
+   "p_holm": 0.7832965850830078
   }
  ],
  "null": {

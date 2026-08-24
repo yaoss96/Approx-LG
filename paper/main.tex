@@ -81,7 +81,8 @@ the evaluation-budget one.  They relocate the credit, and the relocation is the
 finding.  What the model supplies is \emph{candidate designs}, not a policy for
 the variation operator: at no width is the elicited proposal distribution the
 better source, a prior estimated from the run's own data does not help at all,
-and neither extended reasoning (\Think\%) nor a larger model (\Pro\%) moves it.
+and neither extended reasoning nor a larger model changes anything measurably --
+\Think\% and \Pro\% on that channel, \ProFull\% on the whole guided system.
 The placebo alone beats \SotaShamSixteenADP\% of the same library, so most of
 that margin is the template and the flow; and counted in wall clock rather than
 evaluations the guided arm \emph{loses} by \EqTimeNSGA\%, becoming worthwhile
@@ -909,17 +910,27 @@ from nothing at this width (\NullEightN\%), so there is no room in them for an
 effect we could have missed.  What this channel can carry is saturated well
 below the capability of the endpoints we tried, which is the same story the
 rest of the section tells: the ranked list is a small object, a designer can
-write it down, and a better model writes down much the same thing.  Two limits
-belong with that sentence.  Two points on one vendor's family are two points,
-and they license nothing about models in general.  More importantly, both
-re-runs change the endpoint behind the \emph{proposal distribution} -- the one
-channel this section has just shown buys nothing -- and not the operators that
-Section~\ref{sec:ablation} and Section~\ref{sec:hv16} say carry the value.
-Whether a stronger model writes better warm starts, better Pareto-gap
-injections or better dominating children is a question these two runs do not
-touch.  The claim is therefore about the channel they were measured on: that
-channel is saturated, and it is the part of the system a designer can replace
-with a written rule.
+write it down, and a better model writes down much the same thing.
+
+Both of those runs change the endpoint behind the \emph{proposal distribution},
+which is the one channel this section has just shown buys nothing, so they say
+nothing about the operators that do the work.  That objection deserves a run
+rather than a caveat, so the \emph{whole} guided system was re-run on the larger
+model at $16\times16$ unsigned -- the width the paper's claim lives at, every
+operator in place, \ProFullN\ seeds paired against the same seeds of the default
+endpoint.  It does not help there either: \ProFull\% (CI \ProFullCI,
+$p\ProFullP$, $p\ProFullHolm$ corrected, $\hat{A}_{12}=\ProFullA$), with the
+whole interval inside the \NullSixteen\% band of Section~\ref{sec:stats} and the
+two arms splitting the paired seeds evenly.  The larger model is not being given
+less to work with, either: it runs the same \GensProFullG\ generations and
+issues the same \CallsProFullG\ calls as the default endpoint does, and only the
+seconds differ, \SecProFullG\,s of guidance a run against
+\GuidanceSecondsWide\,s, which Section~\ref{sec:walltime} charges at the
+break-even it computes.  The ceiling is therefore not the proposal-distribution
+channel alone but the whole way this system uses a model.  Two endpoints from
+one vendor are two endpoints and license nothing about models in general; what
+they do rule out, at this budget and this template, is that the effect we
+measure is waiting on a better one.
 
 \subsection{Surrogate-assisted search}
 \label{sec:surrogate}
@@ -1230,7 +1241,9 @@ Against the placebo it is worth a couple of percent of hypervolume at
 $16\times16$ and nothing resolvable at $8\times8$; a surrogate model recovers
 about half of it with no inference at all; and under a wall-clock budget on an
 open flow it is negative, turning positive only where a characterisation costs
-about \BreakEvenNSGA\,s or more.  Every candidate stays correct by construction
+about \BreakEvenNSGA\,s or more.  None of it appears to be waiting on a better
+model: moving the whole guided system to the larger endpoint of the same family
+changes it by \ProFull\%, inside the noise, for nearly twice the guidance time.  Every candidate stays correct by construction
 and the fronts beat \SotaSixteenADP\% of \NrefSixteen\ published designs at
 equal \nmed{} \emph{and} MRE -- though an arm with no model in it reaches
 \SotaShamSixteenADP\% of the same library, which is where the credit for that
