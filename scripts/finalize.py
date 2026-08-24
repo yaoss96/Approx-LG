@@ -40,7 +40,12 @@ STEPS = [
     # run put it on a front, so removing it has to be followed by re-running
     # that seed and neither should happen silently inside a paper build.
     ["scripts/purge_bad_ppa.py"],
-    ["scripts/make_template_fig.py"],
+    # Figure 1 is hand-drawn now: paper/figs/template.drawio is the source
+    # and paper/figs/template.pdf its export, both committed.  Running
+    # make_template_fig.py here would overwrite the export with the old
+    # matplotlib figure, so it no longer belongs in the build.  Re-export
+    # after editing the diagram with:
+    #   drawio --export --format pdf --crop \n    #          --output paper/figs/template.pdf paper/figs/template.drawio
     ["scripts/analyze_search.py", "--tag", "n8", "n8L", "n8abl", "n8p"],
     ["scripts/analyze_priors.py", "--tag", "n8", "n8L", "n8p"],
     ["scripts/analyze_prior_agreement.py"],

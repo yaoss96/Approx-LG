@@ -1,5 +1,10 @@
 """Draw the architecture template figure.
 
+SUPERSEDED.  Figure 1 is hand-drawn now: the source is
+paper/figs/template.drawio and the paper includes its PDF export.  This
+script is kept for the record, is no longer called by finalize.py, and
+overwrites paper/figs/template.pdf if it is run.
+
 Three bands stacked on one column axis: the partial-product array, the Dadda
 reduction strip where the bulk of the genome lives (60 of the 64 genes at
 8x8), and the final adder.  The point the figure has to make is that the three

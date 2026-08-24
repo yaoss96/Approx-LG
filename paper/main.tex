@@ -283,12 +283,22 @@ on untouched.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figs/template}
-\Description{Schematic of the parameterised multiplier template: a partial-product array with the T least significant columns removed, a Dadda reduction strip whose (stage, column) slots each carry a compressor-style gene, and a final adder whose k lowest bits are OR-based.}
-\caption{The Approx-LG template for $N=8$.  The $T$ truncated columns are
-dropped before compression.  Each cell of the reduction strip is one
-(stage, column) slot, filled where its compressor style is a gene and hollow
-where the template forces an exact adder.  The OR-based $k$ lowest bits belong
-to the final adder, not to the tree.}
+\Description{Schematic of the parameterised multiplier template.  A column axis
+runs across the top, numbered 14 down to 0 and split into an exact region, an
+approximate region of A columns and a truncated region of T columns.  Below it
+the original partial-product array is drawn as a parallelogram of dots, with
+crosses instead of dots in the truncated columns.  An arrow leads down to a band
+holding two rows of dots, the final partial products, and a second arrow leads
+to the final adder, which is divided into an exact carry-propagate part, an
+OR-based part of k bits and a dropped part.}
+\caption{The Approx-LG template for $N=8$, drawn on one column axis that every
+stage shares.  The $T$ least-significant columns are never generated -- crossed
+in the array, and dropped from the adder as well -- the next $A$ columns carry
+approximate compressors, and the rest stay exact.  Reduction compresses the
+array to the two rows a carry-propagate adder takes; it is inside that step
+that the \SlotGenesEight\ slot genes of the genome live, one per
+(stage, column) slot of the Dadda schedule given in the text.  The $k$
+least-significant bits of the final adder are OR-based.}
 \label{fig:template}
 \end{figure}
 
