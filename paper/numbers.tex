@@ -8,6 +8,8 @@
 \newcommand{\BreakEvenRF}{1.44}
 \newcommand{\BreakEvenSham}{0.58}
 \newcommand{\Budget}{400}
+\newcommand{\CallsEight}{84}
+\newcommand{\CallsSixteenU}{79}
 \newcommand{\DeadGap}{-1.1}
 \newcommand{\DeadHV}{0.0716}
 \newcommand{\DeadHVN}{0.0724}
@@ -43,12 +45,14 @@
 \newcommand{\ExpertVsShamHolm}{0.033}
 \newcommand{\FailClosedText}{An endpoint outage gave us \DeadRuns\ runs of Approx-LG in which \emph{every} guidance call failed, the experiment we would not have scheduled.  They average \DeadHV\ against \DeadHVN\ for NSGA-II on the same seeds, \DeadGap\% and unresolvable ($p=\DeadP$), so the fallback works.  It does not make a run \emph{identical} to NSGA-II: the guided path draws a different random stream, so what is restored is the NSGA-II \emph{distribution}, and pairs scatter, better in \DeadWins\ and worst by \DeadWorst\%.  A guarantee that no run is ever worse is thus stronger than the mechanism supports.  They were also nearly averaged into the guided arm, hiding the effect; the driver now aborts after six consecutive failures.}
 \newcommand{\GAvsRandom}{+0.22}
-\newcommand{\GAvsRandomP}{0.992}
+\newcommand{\GAvsRandomP}{{=}0.992}
 \newcommand{\GainAdaptive}{-0.2}
 \newcommand{\GainExpert}{+2.6}
 \newcommand{\GainLLMprior}{+0.3}
 \newcommand{\GenesEight}{64}
 \newcommand{\GenesSixteen}{190}
+\newcommand{\GensEight}{42}
+\newcommand{\GensSixteenU}{39}
 \newcommand{\GuidanceSecondsWide}{196}
 \newcommand{\GuidanceShare}{63}
 \newcommand{\HVAdaptive}{0.0720}
@@ -161,10 +165,10 @@
 \newcommand{\NrefSixteen}{79}
 \newcommand{\NrefSixteenS}{39}
 \newcommand{\NrefSixteenU}{40}
-\newcommand{\NullEight}{3.53}
-\newcommand{\NullEightMed}{1.25}
-\newcommand{\NullEightN}{1.75}
-\newcommand{\NullSixteen}{1.43}
+\newcommand{\NullEight}{3.44}
+\newcommand{\NullEightMed}{1.24}
+\newcommand{\NullEightN}{1.77}
+\newcommand{\NullSixteen}{1.45}
 \newcommand{\PAdaptive}{0.74}
 \newcommand{\PExpert}{0.00}
 \newcommand{\PLLMprior}{0.88}
@@ -176,18 +180,25 @@
 \newcommand{\PairSixteenUWins}{14/20}
 \newcommand{\PairedGain}{1.9}
 \newcommand{\PairedGainTen}{4.4}
+\newcommand{\PairedMedian}{1.4}
 \newcommand{\PairedP}{0.25}
 \newcommand{\PairedWins}{17/30}
 \newcommand{\PriorEps}{0.25}
 \newcommand{\PriorExactFar}{98}
 \newcommand{\PriorHeadMatch}{29}
-\newcommand{\PriorText}{Against uniform sampling, the fixed designer prior is worth +2.6\% ($p=0.003$, 16 of 20 pairs).  Neither the adaptive prior nor the elicited prior is: -0.2\% ($p=0.737$, 11 of 20 pairs), +0.3\% ($p=0.881$, 10 of 20 pairs) respectively.  The adaptive prior failing is the informative half: it sees the whole archive and still cannot recover the offset-to-style mapping, because \Budget\ evaluations over \Nmodes\ styles and five offsets leave a handful of samples per cell, so the knowledge must come from \emph{outside} the run.  The comparison that matters is the elicited prior against the written-down one: -2.2\%, winning 6 of 20 paired seeds, $p=0.033$.  At this width the written rule is the better source, which we state plainly because it is the result such a paper is least inclined to look for.  The rule did have to be written, once per template, so Section~\ref{sec:hv16} repeats the comparison on a template that has changed.}
+\newcommand{\PriorText}{Against uniform sampling, the fixed designer prior is worth +2.6\% ($p=0.003$, 16 of 20 pairs).  Neither the adaptive prior nor the elicited prior is: -0.2\% ($p=0.737$, 11 of 20 pairs), +0.3\% ($p=0.881$, 10 of 20 pairs) respectively.  The adaptive prior failing is the informative half: it sees the whole archive and still cannot recover the offset-to-style mapping, because \Budget\ evaluations over \Nmodes\ styles and five offsets leave a handful of samples per cell, so the knowledge must come from \emph{outside} the run.  The comparison that matters is the elicited prior against the written-down one: -2.2\%, winning 6 of 20 paired seeds, $p=0.033$, which Holm's correction inside the prior family leaves at \LLMvsExpertHolm.  The uncorrected test rejects and the family correction does not, so the protocol fixed in Section~\ref{sec:stats} leaves this one unresolved and we read it no further than its sign: the point estimate favours the written rule, and what we claim is only that the elicited distribution is not the better source.  That is still the result such a paper is least inclined to look for.  The rule did have to be written, once per template, so Section~\ref{sec:hv16} repeats the comparison on a template that has changed.}
 \newcommand{\PriorTopThree}{49}
+\newcommand{\Pro}{-0.03}
+\newcommand{\ProA}{0.49}
+\newcommand{\ProCI}{[-1.78,\,+1.90]}
+\newcommand{\ProHolm}{{=}1}
+\newcommand{\ProN}{20}
+\newcommand{\ProP}{{=}0.784}
 \newcommand{\RobustText}{A hypervolume is a statement about a box as much as about a front, so Table~\ref{tab:hvsens} re-scores every run under 7 boxes and two indicators that need none.  The sign survives 7 of 7 boxes, from +0.4\% to +3.3\%, reaching $p<0.05$ in 2.  Both box-free indicators disagree: against the union front of every run, the additive $\varepsilon$ indicator puts Approx-LG -12.0\% ($p=0.97$) and IGD$+$ -51.6\% ($p=0.20$), both favouring NSGA-II.  The fronts show why: the box stops paying below $\nmed=10^{-6}$, so a search chasing it has no reason to refine further, and guided runs place 6.4 front points below $10^{-5}$ against 8.5 for NSGA-II and 10.1 for the fixed prior.  IGD$+$ charges for that thinning and the hypervolume does not; a reader who needs the accurate corner should weight the box-free numbers.  We report the disagreement rather than the flattering indicator.}
-\newcommand{\SdSixteenSA}{0.0029}
-\newcommand{\SdSixteenSN}{0.0050}
-\newcommand{\SdSixteenUA}{0.0047}
-\newcommand{\SdSixteenUN}{0.0048}
+\newcommand{\SdSixteenSA}{0.0028}
+\newcommand{\SdSixteenSN}{0.0049}
+\newcommand{\SdSixteenUA}{0.0046}
+\newcommand{\SdSixteenUN}{0.0046}
 \newcommand{\SecPerCircuit}{0.30}
 \newcommand{\SecPerCircuitWide}{0.33}
 \newcommand{\SeedsAdaptive}{20}
@@ -203,27 +214,38 @@
 \newcommand{\SeedsSixteenUL}{20}
 \newcommand{\ShamEight}{+2.31}
 \newcommand{\ShamEightA}{0.58}
-\newcommand{\ShamEightCI}{[-0.36,\,+5.48]}
-\newcommand{\ShamEightHolm}{0.133}
+\newcommand{\ShamEightCI}{[-0.42,\,+5.51]}
+\newcommand{\ShamEightHolm}{{=}0.133}
 \newcommand{\ShamEightN}{20}
-\newcommand{\ShamEightP}{0.133}
+\newcommand{\ShamEightP}{{=}0.133}
 \newcommand{\ShamEightWins}{15/20}
+\newcommand{\ShamNsgaEight}{+0.67}
+\newcommand{\ShamNsgaEightCI}{[-0.80,\,+2.10]}
+\newcommand{\ShamNsgaEightP}{{=}0.349}
+\newcommand{\ShamNsgaS}{+0.99}
+\newcommand{\ShamNsgaSCI}{[-0.21,\,+2.27]}
+\newcommand{\ShamNsgaSP}{{=}0.143}
+\newcommand{\ShamNsgaU}{-0.41}
+\newcommand{\ShamNsgaUCI}{[-1.14,\,+0.43]}
+\newcommand{\ShamNsgaUP}{{=}0.165}
 \newcommand{\ShamSixteenS}{+1.69}
 \newcommand{\ShamSixteenSA}{0.78}
-\newcommand{\ShamSixteenSCI}{[+0.89,\,+2.61]}
-\newcommand{\ShamSixteenSHolm}{$<$0.001}
+\newcommand{\ShamSixteenSCI}{[+0.88,\,+2.60]}
+\newcommand{\ShamSixteenSHolm}{{<}0.001}
 \newcommand{\ShamSixteenSN}{20}
-\newcommand{\ShamSixteenSP}{$<$0.001}
+\newcommand{\ShamSixteenSP}{{<}0.001}
 \newcommand{\ShamSixteenSWins}{17/20}
 \newcommand{\ShamSixteenU}{+2.32}
 \newcommand{\ShamSixteenUA}{0.90}
 \newcommand{\ShamSixteenUCI}{[+1.46,\,+3.29]}
-\newcommand{\ShamSixteenUHolm}{$<$0.001}
+\newcommand{\ShamSixteenUHolm}{{<}0.001}
 \newcommand{\ShamSixteenUN}{20}
-\newcommand{\ShamSixteenUP}{$<$0.001}
+\newcommand{\ShamSixteenUP}{{<}0.001}
 \newcommand{\ShamSixteenUWins}{18/20}
 \newcommand{\SixteenText}{Over \SeedsSixteenU\ unsigned seeds the hypervolume is \HVsixteenUA\ for Approx-LG against \HVsixteenUN\ for NSGA-II (\PairSixteenU\%, \PairSixteenUWins\ pairs, $p=\PairSixteenUP$) and \HVsixteenUR\ for random search; the signed template gives \HVsixteenSA\ against \HVsixteenSN\ (\PairSixteenS\%, \PairSixteenSWins\ pairs, $p=\PairSixteenSP$).  The unsigned mean curve reaches the final NSGA-II hypervolume after \EvalsSixteenU\ evaluations, a \SpeedupSixteenU$\times$ saving.  The unsigned spread is \SdSixteenUA\ against \SdSixteenUN, but one bad NSGA-II run sets almost all of that gap and Levene's test does not resolve it ($p=\LeveneSixteenU$), so we claim no variance reduction.  The written rule transfers unchanged, reaching \HVsixteenUE\ unsigned (\ExpertSixteenU\% over NSGA-II, $p=\ExpertSixteenUP$) and \HVsixteenSE\ signed (\ExpertSixteenS\%, $p=\ExpertSixteenSP$); nothing in it was specific to $8\times8$.  The matched arm, the elicited prior alone, reaches \HVsixteenUL\ unsigned (\LLMpriorSixteenU\%, $p=\LLMpriorSixteenUP$) and \HVsixteenSL\ signed (\LLMpriorSixteenS\%, $p=\LLMpriorSixteenSP$); against the written rule it is \LLMvsExpSixteenU\% ($p=\LLMvsExpSixteenUP$) and \LLMvsExpSixteenS\% ($p=\LLMvsExpSixteenSP$), against \LLMvsExpert\% at $8\times8$.  At no width is the elicited prior the better source, yet the full system sits \VsLLMSixteenU\% above it unsigned (\VsLLMSixteenUWins\ pairs, $p=\VsLLMSixteenUP$) and \VsLLMSixteenS\% signed ($p=\VsLLMSixteenSP$): most of what guidance buys does not travel through the proposal distribution.}
 \newcommand{\SixteenVerdict}{At $16\times16$ the full guided system does separate from the carried-over rule, though the elicited prior on its own still does not, so the separation comes from the operators that propose designs and not from the advice}
+\newcommand{\SlotGenesEight}{60}
+\newcommand{\SlotGenesSixteen}{186}
 \newcommand{\SotaAllADP}{94.4}
 \newcommand{\SotaAllPDP}{93.8}
 \newcommand{\SotaAm}{93.8}
@@ -249,7 +271,13 @@
 \newcommand{\SpeedupEight}{1.2}
 \newcommand{\SpeedupSixteenS}{1.6}
 \newcommand{\SpeedupSixteenU}{1.3}
-\newcommand{\SurrogateText}{On the unsigned template the surrogate is worth +1.05\% over the sham arm ($p=0.004$), and Approx-LG +1.27\% above the surrogate ($p=0.009$, 0.057 after Holm).  On the signed template the surrogate is worth +0.97\% over the sham arm ($p=0.044$), and Approx-LG +0.73\% above the surrogate ($p=0.07$, 0.209 after Holm).}
+\newcommand{\SurrogateText}{On the unsigned template the surrogate is worth +1.05\% over the sham arm ($p{=}0.004$), and Approx-LG +1.27\% above the surrogate ($p{=}0.009$, 0.057 after Holm).  On the signed template the surrogate is worth +0.97\% over the sham arm ($p{=}0.044$), and Approx-LG +0.73\% above the surrogate ($p{=}0.07$, 0.209 after Holm).}
+\newcommand{\Think}{-0.05}
+\newcommand{\ThinkA}{0.47}
+\newcommand{\ThinkCI}{[-1.54,\,+1.42]}
+\newcommand{\ThinkHolm}{{=}1}
+\newcommand{\ThinkN}{20}
+\newcommand{\ThinkP}{{=}1}
 \newcommand{\TimeApproxLG}{263}
 \newcommand{\TimeEDAcold}{119}
 \newcommand{\TimeGuidance}{206}

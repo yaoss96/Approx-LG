@@ -31,6 +31,7 @@ LABEL = {
     "nsga2_expert": r"NSGA-II\,+\,fixed prior",
     "nsga2_adaptive": r"NSGA-II\,+\,adaptive prior",
     "nsga2_llmprior": r"NSGA-II\,+\,elicited prior",
+    "nsga2_rf": r"NSGA-II\,+\,RF surrogate",
     "approxlg_no_prior": "w/o the proposal distribution",
     "approxlg_sham": "sham guidance",
 }
@@ -39,7 +40,8 @@ MAX_SEED = 10**9        # no cap; stale runs are purged at the source
 # only looks at Table I should see the arm that decides what the guided row is
 # evidence for.
 ORDER = ["random", "ga", "nsga2", "eamva", "biased_ga", "llm_only",
-         "nsga2_expert", "approxlg_sham", "approxlg"]
+         "nsga2_expert", "nsga2_llmprior", "nsga2_rf", "approxlg_sham",
+         "approxlg"]
 ABL = ["approxlg", "approxlg_no_warm", "approxlg_no_inject",
        "approxlg_no_mutguide", "approxlg_no_prior", "approxlg_no_refine",
        "approxlg_prior_only"]

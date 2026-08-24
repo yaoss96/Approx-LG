@@ -69,6 +69,9 @@ mac("NcellsCFT", len(C42_CELLS))
 mac("Nmodes", len(SLOT_MODES))
 mac("GenesEight", sp8.length)
 mac("GenesSixteen", sp16.length)
+# The header genes T, A, c and k are not slots; the paper needs both counts.
+mac("SlotGenesEight", sp8.length - 4)
+mac("SlotGenesSixteen", sp16.length - 4)
 mac("SpaceEight", fmt_pow(space_size(sp8)))
 mac("SpaceSixteen", fmt_pow(space_size(sp16)))
 mac("MsEight", "2")
@@ -107,6 +110,16 @@ if "nsga2" in by8 and "approxlg" in by8:
         mac("LLMcalls", f"{np.mean([s['calls'] for s in st]):.0f}")
         mac("LLMsec", f"{np.mean([s['seconds']/max(s['calls'],1) for s in st]):.1f}")
         mac("LLMtok", f"{np.mean([(s['prompt_tokens']+s['completion_tokens'])/1000 for s in st]):.0f}")
+# Generations actually run.  A generation costs the budget only the circuits
+# it has not already bought, so a run takes far more than budget/mu of them.
+for tag, algo, key in (("n8L", "approxlg", "Eight"),
+                       ("n16u", "approxlg", "SixteenU")):
+    rs = load_search([tag]).get(algo, [])
+    if rs:
+        mac(f"Gens{key}", f"{np.mean([len(r['hv_trace']) for r in rs]):.0f}")
+        st = [r["llm"] for r in rs if r.get("llm")]
+        if st:
+            mac(f"Calls{key}", f"{np.mean([x['calls'] for x in st]):.0f}")
 mac("Budget", 400)
 from approxlg.llm import ModePrior                            # noqa: E402
 mac("PriorEps", f"{ModePrior().epsilon:g}")
@@ -125,6 +138,7 @@ if "nsga2" in by8 and "approxlg" in by8:
         mac("PairedWins", f"{w}/{n}")
         mac("PairedP", f"{p:.2f}")
         mac("PairedGain", f"{100*np.mean((A-N)/N):.1f}")
+        mac("PairedMedian", f"{100*np.median((A-N)/N):.1f}")
         # what the same comparison said on the first ten seeds alone, which is
         # the number the first submission reported
         if len(common) >= 10:
@@ -202,13 +216,22 @@ if "nsga2" in by_pri:
                 mac(f"LLMvs{key}P", f"{d['p']:.2f}")
                 mac(f"LLMvs{key}Wins", f"{d['wins']}/{d['n']}")
 
+HOLM = {}
+
 # ---- the statistical protocol: primary endpoint, families, null band -----
 f = os.path.join(TABS, "stats.json")
 if os.path.exists(f):
     st_ = json.load(open(f))
 
-    def _fmtp(p):
+    def _pnum(p):
+        """The value alone, for prose that supplies its own words."""
         return "$<$0.001" if p < 0.001 else f"{p:.3f}".rstrip("0").rstrip(".")
+
+    def _fmtp(p):
+        """Relation and value, for sites written as $p\\Macro$."""
+        if p < 0.001:
+            return "{<}0.001"
+        return "{=}" + f"{p:.3f}".rstrip("0").rstrip(".")
 
     KEY = {"$8\\times8$": "Eight", "$16\\times16$ unsigned": "SixteenU",
            "$16\\times16$ signed": "SixteenS"}
@@ -223,6 +246,28 @@ if os.path.exists(f):
         mac(f"Sham{k}N", r["n"])
         mac(f"Sham{k}Wins", f"{r['wins']}/{r['npairs']}")
         mac(f"Sham{k}A", f"{r['a12']:.2f}")
+    KEYM = {"extended reasoning vs the default endpoint": "Think",
+            "a larger model vs the default endpoint": "Pro"}
+    for r in st_.get("model", []):
+        k = KEYM.get(r["what"])
+        if not k:
+            continue
+        mac(k, f"{r['delta']:+.2f}")
+        mac(f"{k}CI", f"[{r['ci'][0]:+.2f},\\,{r['ci'][1]:+.2f}]")
+        mac(f"{k}P", _fmtp(r["p"]))
+        mac(f"{k}Holm", _fmtp(r["p_holm"]))
+        mac(f"{k}N", r["n"])
+        mac(f"{k}A", f"{r['a12']:.2f}")
+    KEYC = {"sham vs NSGA-II (unsigned)": "ShamNsgaU",
+            "sham vs NSGA-II (signed)": "ShamNsgaS",
+            "sham vs NSGA-II ($8\\times8$)": "ShamNsgaEight"}
+    for r in st_.get("control", []):
+        k = KEYC.get(r["what"])
+        if not k:
+            continue
+        mac(k, f"{r['delta']:+.2f}")
+        mac(f"{k}CI", f"[{r['ci'][0]:+.2f},\\,{r['ci'][1]:+.2f}]")
+        mac(f"{k}P", _fmtp(r["p"]))
     nb = st_.get("null", {})
     if "approxlg 8x8" in nb:
         mac("NullEight", f"{nb['approxlg 8x8']['p95']:.2f}")
@@ -233,10 +278,11 @@ if os.path.exists(f):
         mac("NullSixteen", f"{nb['nsga2 16x16u']['p95']:.2f}")
     for row in st_.get("prior", []):
         if row["what"].startswith("elicited vs fixed"):
-            mac("LLMvsExpertHolm", _fmtp(row["p_holm"]))
+            mac("LLMvsExpertHolm", _pnum(row["p_holm"]))
+            HOLM["elicited_vs_fixed"] = float(row["p_holm"])
         if row["what"].startswith("fixed prior vs sham"):
             mac("ExpertVsSham", f"{row['delta']:+.2f}")
-            mac("ExpertVsShamHolm", _fmtp(row["p_holm"]))
+            mac("ExpertVsShamHolm", _pnum(row["p_holm"]))
     for row in st_.get("reference", []):
         if row["what"].startswith("GA vs random"):
             mac("GAvsRandom", f"{row['delta']:+.2f}")
@@ -253,9 +299,9 @@ if os.path.exists(f):
             bits.append(
                 f"On the {lab} template the surrogate is worth "
                 f"{b['delta']:+.2f}\\% over the sham arm "
-                f"($p={_fmtp(b['p'])}$), and Approx-LG "
+                f"($p{_fmtp(b['p'])}$), and Approx-LG "
                 f"{a['delta']:+.2f}\\% above the surrogate "
-                f"($p={_fmtp(a['p'])}$, {_fmtp(a['p_holm'])} after Holm).")
+                f"($p{_fmtp(a['p'])}$, {_pnum(a['p_holm'])} after Holm).")
     if bits:
         mac("SurrogateText", "  ".join(bits))
 
@@ -404,8 +450,9 @@ for tag, key in (("n16u", "U"), ("n16s", "S")):
         va = np.array(list(hv_by["approxlg"].values()))
         vn = np.array(list(hv_by["nsga2"].values()))
         if len(va) >= 3 and len(vn) >= 3 and va.std() > 0:
-            mac(f"SdSixteen{key}A", f"{va.std(ddof=1):.4f}")
-            mac(f"SdSixteen{key}N", f"{vn.std(ddof=1):.4f}")
+            # ddof=0, the same dispersion Table~\ref{tab:search16} prints
+            mac(f"SdSixteen{key}A", f"{va.std():.4f}")
+            mac(f"SdSixteen{key}N", f"{vn.std():.4f}")
             mac(f"VarRatioSixteen{key}",
                 f"{vn.std(ddof=1)/va.std(ddof=1):.1f}")
             pl, _ = mannwhitney(np.abs(va - np.median(va)),
@@ -827,11 +874,13 @@ if os.path.exists(f):
                 f"  The comparison that matters is the elicited prior against "
                 f"the written-down one: {hh['gain']:+.1f}\\%, winning "
                 f"{hh['wins']} of {hh['n']} paired seeds, "
-                f"${pfmt(hh['p'])}$.")
-            if _sig(hh["p"]) and hh["gain"] > 0:
+                f"${pfmt(hh['p'])}$, which Holm's correction inside the "
+                f"prior family leaves at \\LLMvsExpertHolm.")
+            p_adj = HOLM.get("elicited_vs_fixed", hh["p"])
+            if _sig(p_adj) and hh["gain"] > 0:
                 parts.append("  The model is the better source of the "
                              "distribution, not merely a source of one.")
-            elif _sig(hh["p"]):
+            elif _sig(p_adj):
                 parts.append(
                     "  At this width the written rule is the better source, "
                     "which we state plainly because it is the result such a "
@@ -839,6 +888,18 @@ if os.path.exists(f):
                     "to be written, once per template, so "
                     "Section~\\ref{sec:hv16} repeats the comparison on a "
                     "template that has changed.")
+            elif _sig(hh["p"]):
+                parts.append(
+                    "  The uncorrected test rejects and the family correction "
+                    "does not, so the protocol fixed in "
+                    "Section~\\ref{sec:stats} leaves this one unresolved and "
+                    "we read it no further than its sign: the point estimate "
+                    "favours the written rule, and what we claim is only that "
+                    "the elicited distribution is not the better source.  "
+                    "That is still the result such a paper is least inclined "
+                    "to look for.  The rule did have to be written, once per "
+                    "template, so Section~\\ref{sec:hv16} repeats the "
+                    "comparison on a template that has changed.")
             else:
                 parts.append(
                     "  They are indistinguishable.  We therefore do not claim "
@@ -1028,6 +1089,17 @@ defaults = {
     "PairSixteenU": "0", "PairSixteenUP": "1.00", "PairSixteenUWins": "--",
     "PairSixteenS": "0", "PairSixteenSP": "1.00", "PairSixteenSWins": "--",
     "HVsixteenUE": "0", "HVsixteenSE": "0",
+    "SlotGenesEight": "0", "SlotGenesSixteen": "0",
+    "GensEight": "0", "GensSixteenU": "0",
+    "CallsEight": "0", "CallsSixteenU": "0",
+    "PairedMedian": "0",
+    "Think": "0", "ThinkCI": "--", "ThinkP": "1", "ThinkHolm": "1",
+    "ThinkN": "0", "ThinkA": "0",
+    "Pro": "0", "ProCI": "--", "ProP": "1", "ProHolm": "1",
+    "ProN": "0", "ProA": "0",
+    "ShamNsgaU": "0", "ShamNsgaUCI": "--", "ShamNsgaUP": "1",
+    "ShamNsgaS": "0", "ShamNsgaSCI": "--", "ShamNsgaSP": "1",
+    "ShamNsgaEight": "0", "ShamNsgaEightCI": "--", "ShamNsgaEightP": "1",
     "SdSixteenUA": "0", "SdSixteenUN": "0",
     "SdSixteenSA": "0", "SdSixteenSN": "0",
     "LeveneSixteenU": "--", "LeveneSixteenS": "--",

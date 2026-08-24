@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
+import hashlib
 import os
 import sys
 from collections import defaultdict
@@ -106,11 +107,26 @@ def a12(a, b):
     return (gt + 0.5 * eq) / (len(a) * len(b))
 
 
+def _rng_for(*arrays):
+    """A generator seeded by the data it will resample.
+
+    The module used to draw every bootstrap and every null-band split from one
+    global stream, which made each number depend on how many tests happened to
+    run before it: adding a comparison silently moved the null band and every
+    confidence interval after it.  Seeding from the input bytes instead makes
+    each quantity reproducible on its own, whatever else the run computes.
+    """
+    h = hashlib.sha1()
+    for a in arrays:
+        h.update(np.ascontiguousarray(a, dtype=float).tobytes())
+    return np.random.default_rng(int.from_bytes(h.digest()[:8], "little"))
+
+
 def boot_ci(a, b, level=0.95):
     """Percentile bootstrap CI on the paired mean relative difference."""
     a, b = np.asarray(a, float), np.asarray(b, float)
     n = len(a)
-    idx = RNG.integers(0, n, size=(BOOT, n))
+    idx = _rng_for(a, b).integers(0, n, size=(BOOT, n))
     stat = np.mean((a[idx] - b[idx]) / b[idx], axis=1)
     lo, hi = np.quantile(stat, [(1 - level) / 2, 1 - (1 - level) / 2])
     return 100 * lo, 100 * hi
@@ -139,7 +155,7 @@ def holm(ps):
     return adj
 
 
-def null_band(by, arm, reps=2000, half=None):
+def null_band(by, arm, reps=20000, half=None):
     """How large a paired difference this pipeline invents from nothing.
 
     Splits one arm's runs into two disjoint halves and scores them against
@@ -147,13 +163,14 @@ def null_band(by, arm, reps=2000, half=None):
     the absolute difference is the floor below which nothing is evidence.
     """
     v = np.array(list(by[arm].values()))
+    rng = _rng_for(v)
     n = len(v)
     k = half or n // 2
     if n < 8:
         return float("nan"), float("nan")
     out = []
     for _ in range(reps):
-        perm = RNG.permutation(n)
+        perm = rng.permutation(n)
         a, b = v[perm[:k]], v[perm[k:2 * k]]
         out.append(100 * float(np.mean((a - b) / b)))
     out = np.abs(np.array(out))
@@ -234,6 +251,40 @@ def main():
                 r["p_holm"] = float(q)
         report[name] = rows
 
+    # ---- diagnostics that belong to no corrected family ------------------
+    # The placebo is the arm the primary endpoint is measured against, so
+    # whether the placebo is itself weaker than plain NSGA-II decides how much
+    # of the primary effect is the model and how much is the control losing.
+    # This is a sanity check on the control, not a test of the hypothesis, so
+    # it is reported uncorrected and kept out of the families above.
+    control = []
+    for lab, by in (("unsigned", u16), ("signed", s16), ("$8\\times8$", n8)):
+        if "approxlg_sham" in by and "nsga2" in by:
+            r = paired(by, "approxlg_sham", "nsga2")
+            r["what"] = f"sham vs NSGA-II ({lab})"
+            control.append(r)
+    report["control"] = control
+
+    # ---- does the endpoint or the model size move the elicited prior? ----
+    # Same arm, same seeds, same everything but the model behind the proposal
+    # distribution: extended reasoning on, and a larger model.
+    base = load(["n8p"])
+    model = []
+    for lab, tag in (("extended reasoning", "n8think"),
+                     ("a larger model", "n8pro")):
+        by = load([tag])
+        if "nsga2_llmprior" in by and "nsga2_llmprior" in base:
+            merged = {"variant": by["nsga2_llmprior"],
+                      "base": base["nsga2_llmprior"]}
+            if len(set(merged["variant"]) & set(merged["base"])) >= 6:
+                r = paired(merged, "variant", "base")
+                r["what"] = f"{lab} vs the default endpoint"
+                model.append(r)
+    if model:
+        for r, q in zip(model, holm([r["p"] for r in model])):
+            r["p_holm"] = float(q)
+    report["model"] = model
+
     # ---- null calibration -------------------------------------------------
     cal = {}
     for label, by, arm in (("nsga2 8x8", n8, "nsga2"),
@@ -260,7 +311,7 @@ def main():
                   f"{r['a12']:5.2f}")
 
     show("PRIMARY  guided vs sham guidance", report["primary"])
-    for k in ("reference", "wide", "prior", "ablation"):
+    for k in ("reference", "wide", "prior", "ablation", "model", "control"):
         show(f"secondary: {k}", report[k])
     print("\nnull calibration (same arm split in half, |paired delta|):")
     for k, v in cal.items():

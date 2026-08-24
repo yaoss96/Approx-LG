@@ -111,11 +111,13 @@ def main():
         return f"{nm} at $\\overline{{ED}}=" + ",\\,".join(vals) + "$"
     with open(os.path.join(TABS, "styles_text.tex"), "w") as fh:
         fh.write(
-            f"{len(rows)} styles cover {sum(p for _, _, _, p in rows):.0f}"
+            # print the total as the three group shares actually add up to,
+            # so a reader who sums the parts does not land one point away
+            f"{len(rows)} styles cover {u_pct + o_pct + b_pct:.1f}"
             f"\\,\\% of the approximate slots, and they mix under-estimating "
-            f"cells ({names(under)}, {u_pct:.0f}\\,\\%) with over-estimating "
-            f"ones ({names(over)}, {o_pct:.0f}\\,\\%) and the balanced "
-            f"{names(bal, eds=False)} ({b_pct:.0f}\\,\\%)")
+            f"cells ({names(under)}, {u_pct:.1f}\\,\\%) with over-estimating "
+            f"ones ({names(over)}, {o_pct:.1f}\\,\\%) and the balanced "
+            f"{names(bal, eds=False)} ({b_pct:.1f}\\,\\%)")
 
     # ------------------------------------------------------------------
     import matplotlib
