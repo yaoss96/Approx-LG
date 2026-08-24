@@ -155,7 +155,7 @@ def holm(ps):
     return adj
 
 
-def null_band(by, arm, reps=20000, half=None):
+def null_band(by, arm, reps=200000, half=None):
     """How large a paired difference this pipeline invents from nothing.
 
     Splits one arm's runs into two disjoint halves and scores them against
@@ -174,7 +174,13 @@ def null_band(by, arm, reps=20000, half=None):
         a, b = v[perm[:k]], v[perm[k:2 * k]]
         out.append(100 * float(np.mean((a - b) / b)))
     out = np.abs(np.array(out))
-    return float(np.median(out)), float(np.quantile(out, 0.95))
+    p95 = float(np.quantile(out, 0.95))
+    # Monte-Carlo error of the 95th percentile itself: the primary effect is
+    # compared against it, so a reader has to know whether it is stable in the
+    # digit the comparison turns on.
+    boot = rng.integers(0, len(out), size=(400, len(out)))
+    se = float(np.std(np.quantile(out[boot], 0.95, axis=1)))
+    return float(np.median(out)), p95, se
 
 
 # --------------------------------------------------------------------------
@@ -293,8 +299,9 @@ def main():
                            ("approxlg 16x16u", u16, "approxlg"),
                            ("approxlg 16x16s", s16, "approxlg")):
         if arm in by and len(by[arm]) >= 8:
-            med, p95 = null_band(by, arm)
-            cal[label] = {"median": med, "p95": p95, "runs": len(by[arm])}
+            med, p95, se = null_band(by, arm)
+            cal[label] = {"median": med, "p95": p95, "p95_se": se,
+                          "runs": len(by[arm])}
     report["null"] = cal
 
     # ---- print + emit ------------------------------------------------------
@@ -316,7 +323,7 @@ def main():
     print("\nnull calibration (same arm split in half, |paired delta|):")
     for k, v in cal.items():
         print(f"  {k:14s} {v['runs']:2d} runs   median {v['median']:.2f}%   "
-              f"95th pct {v['p95']:.2f}%")
+              f"95th pct {v['p95']:.2f}% +- {v['p95_se']:.3f}")
 
     with open(os.path.join(TABS, f"{args.out}.json"), "w") as fh:
         json.dump(report, fh, indent=1)

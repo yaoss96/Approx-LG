@@ -4,11 +4,14 @@
 \newcommand{\BoxGainHi}{+3.3}
 \newcommand{\BoxGainLo}{+0.4}
 \newcommand{\BoxSig}{2}
+\newcommand{\BoxSigHolm}{1}
 \newcommand{\BreakEvenNSGA}{0.98}
 \newcommand{\BreakEvenRF}{1.44}
 \newcommand{\BreakEvenSham}{0.58}
 \newcommand{\Budget}{400}
 \newcommand{\CallsEight}{84}
+\newcommand{\CallsShamEightG}{0}
+\newcommand{\CallsShamSixteenUG}{0}
 \newcommand{\CallsSixteenU}{79}
 \newcommand{\DeadGap}{-1.1}
 \newcommand{\DeadHV}{0.0716}
@@ -24,22 +27,22 @@
 \newcommand{\EqTimeEvals}{1068}
 \newcommand{\EqTimeNSGA}{-1.55}
 \newcommand{\EqTimeNSGACI}{[-2.26,\,-0.80]}
-\newcommand{\EqTimeNSGAP}{0.001}
+\newcommand{\EqTimeNSGAP}{{=}0.001}
 \newcommand{\EqTimeRF}{-1.97}
 \newcommand{\EqTimeRFCI}{[-2.60,\,-1.30]}
-\newcommand{\EqTimeRFP}{$<$0.001}
+\newcommand{\EqTimeRFP}{{<}0.001}
 \newcommand{\EqTimeSeconds}{356}
 \newcommand{\EqTimeSham}{-0.84}
 \newcommand{\EqTimeShamCI}{[-1.64,\,+0.03]}
-\newcommand{\EqTimeShamP}{0.064}
+\newcommand{\EqTimeShamP}{{=}0.064}
 \newcommand{\EvalsApproxLG}{338}
 \newcommand{\EvalsSixteenS}{320}
 \newcommand{\EvalsSixteenU}{384}
 \newcommand{\ExpertSixteenS}{+1.5}
-\newcommand{\ExpertSixteenSP}{0.021}
+\newcommand{\ExpertSixteenSP}{{=}0.021}
 \newcommand{\ExpertSixteenSWins}{15/20}
 \newcommand{\ExpertSixteenU}{+0.6}
-\newcommand{\ExpertSixteenUP}{0.156}
+\newcommand{\ExpertSixteenUP}{{=}0.156}
 \newcommand{\ExpertSixteenUWins}{11/20}
 \newcommand{\ExpertVsSham}{+2.02}
 \newcommand{\ExpertVsShamHolm}{0.033}
@@ -52,6 +55,10 @@
 \newcommand{\GenesEight}{64}
 \newcommand{\GenesSixteen}{190}
 \newcommand{\GensEight}{42}
+\newcommand{\GensNsgaEightG}{50}
+\newcommand{\GensNsgaSixteenUG}{51}
+\newcommand{\GensShamEightG}{46}
+\newcommand{\GensShamSixteenUG}{44}
 \newcommand{\GensSixteenU}{39}
 \newcommand{\GuidanceSecondsWide}{196}
 \newcommand{\GuidanceShare}{63}
@@ -85,10 +92,10 @@
 \newcommand{\LLMfrontShare}{21}
 \newcommand{\LLMname}{deepseek-v4-flash}
 \newcommand{\LLMpriorSixteenS}{+1.0}
-\newcommand{\LLMpriorSixteenSP}{0.015}
+\newcommand{\LLMpriorSixteenSP}{{=}0.015}
 \newcommand{\LLMpriorSixteenSWins}{15/20}
 \newcommand{\LLMpriorSixteenU}{+0.2}
-\newcommand{\LLMpriorSixteenUP}{0.794}
+\newcommand{\LLMpriorSixteenUP}{{=}0.794}
 \newcommand{\LLMpriorSixteenUWins}{8/20}
 \newcommand{\LLMsec}{2.5}
 \newcommand{\LLMtok}{258}
@@ -96,10 +103,10 @@
 \newcommand{\LLMvsAdaptiveP}{0.41}
 \newcommand{\LLMvsAdaptiveWins}{11/20}
 \newcommand{\LLMvsExpSixteenS}{-0.4}
-\newcommand{\LLMvsExpSixteenSP}{0.911}
+\newcommand{\LLMvsExpSixteenSP}{{=}0.911}
 \newcommand{\LLMvsExpSixteenSWins}{11/20}
 \newcommand{\LLMvsExpSixteenU}{-0.3}
-\newcommand{\LLMvsExpSixteenUP}{0.232}
+\newcommand{\LLMvsExpSixteenUP}{{=}0.232}
 \newcommand{\LLMvsExpSixteenUWins}{7/20}
 \newcommand{\LLMvsExpert}{-2.2}
 \newcommand{\LLMvsExpertHolm}{0.098}
@@ -143,6 +150,9 @@
 \newcommand{\NcharBadArea}{19.7\,$\mu$m$^2$ at 39\,ps}
 \newcommand{\NcharGoodArea}{369.7\,$\mu$m$^2$ at 440\,ps}
 \newcommand{\NcharTotal}{309\,912}
+\newcommand{\NlibEightTotal}{111}
+\newcommand{\NlibEightUsed}{70}
+\newcommand{\NlibEightVerified}{100}
 \newcommand{\NlibElaborate}{92}
 \newcommand{\NlibExact}{4}
 \newcommand{\NlibExcluded}{8}
@@ -165,18 +175,20 @@
 \newcommand{\NrefSixteen}{79}
 \newcommand{\NrefSixteenS}{39}
 \newcommand{\NrefSixteenU}{40}
-\newcommand{\NullEight}{3.44}
+\newcommand{\NullEight}{3.45}
 \newcommand{\NullEightMed}{1.24}
-\newcommand{\NullEightN}{1.77}
+\newcommand{\NullEightN}{1.79}
+\newcommand{\NullEightSE}{0.006}
 \newcommand{\NullSixteen}{1.45}
+\newcommand{\NullSixteenSE}{0.002}
 \newcommand{\PAdaptive}{0.74}
 \newcommand{\PExpert}{0.00}
 \newcommand{\PLLMprior}{0.88}
 \newcommand{\PairSixteenS}{+2.7}
-\newcommand{\PairSixteenSP}{$<$0.001}
+\newcommand{\PairSixteenSP}{{<}0.001}
 \newcommand{\PairSixteenSWins}{19/20}
 \newcommand{\PairSixteenU}{+1.9}
-\newcommand{\PairSixteenUP}{0.009}
+\newcommand{\PairSixteenUP}{{=}0.009}
 \newcommand{\PairSixteenUWins}{14/20}
 \newcommand{\PairedGain}{1.9}
 \newcommand{\PairedGainTen}{4.4}
@@ -194,7 +206,7 @@
 \newcommand{\ProHolm}{{=}1}
 \newcommand{\ProN}{20}
 \newcommand{\ProP}{{=}0.784}
-\newcommand{\RobustText}{A hypervolume is a statement about a box as much as about a front, so Table~\ref{tab:hvsens} re-scores every run under 7 boxes and two indicators that need none.  The sign survives 7 of 7 boxes, from +0.4\% to +3.3\%, reaching $p<0.05$ in 2.  Both box-free indicators disagree: against the union front of every run, the additive $\varepsilon$ indicator puts Approx-LG -12.0\% ($p=0.97$) and IGD$+$ -51.6\% ($p=0.20$), both favouring NSGA-II.  The fronts show why: the box stops paying below $\nmed=10^{-6}$, so a search chasing it has no reason to refine further, and guided runs place 6.4 front points below $10^{-5}$ against 8.5 for NSGA-II and 10.1 for the fixed prior.  IGD$+$ charges for that thinning and the hypervolume does not; a reader who needs the accurate corner should weight the box-free numbers.  We report the disagreement rather than the flattering indicator.}
+\newcommand{\RobustText}{A hypervolume is a statement about a box as much as about a front, so Table~\ref{tab:hvsens} re-scores every run under 7 boxes and two indicators that need none.  The sign survives 7 of 7 boxes, from +0.4\% to +3.3\%, reaching $p<0.05$ in 2 uncorrected and in \BoxSigHolm\ after Holm inside the 7-box family.  What the table is read for is the sign holding under every box, not the threshold being crossed under one of them.  Both box-free indicators disagree: against the union front of every run, the additive $\varepsilon$ indicator puts Approx-LG -12.0\% ($p=0.97$) and IGD$+$ -51.6\% ($p=0.20$), both favouring NSGA-II.  The fronts show why: the box stops paying below $\nmed=10^{-6}$, so a search chasing it has no reason to refine further, and guided runs place 6.4 front points below $10^{-5}$ against 8.5 for NSGA-II and 10.1 for the fixed prior.  IGD$+$ charges for that thinning and the hypervolume does not; a reader who needs the accurate corner should weight the box-free numbers.  We report the disagreement rather than the flattering indicator.}
 \newcommand{\SdSixteenSA}{0.0028}
 \newcommand{\SdSixteenSN}{0.0049}
 \newcommand{\SdSixteenUA}{0.0046}
@@ -242,7 +254,7 @@
 \newcommand{\ShamSixteenUN}{20}
 \newcommand{\ShamSixteenUP}{{<}0.001}
 \newcommand{\ShamSixteenUWins}{18/20}
-\newcommand{\SixteenText}{Over \SeedsSixteenU\ unsigned seeds the hypervolume is \HVsixteenUA\ for Approx-LG against \HVsixteenUN\ for NSGA-II (\PairSixteenU\%, \PairSixteenUWins\ pairs, $p=\PairSixteenUP$) and \HVsixteenUR\ for random search; the signed template gives \HVsixteenSA\ against \HVsixteenSN\ (\PairSixteenS\%, \PairSixteenSWins\ pairs, $p=\PairSixteenSP$).  The unsigned mean curve reaches the final NSGA-II hypervolume after \EvalsSixteenU\ evaluations, a \SpeedupSixteenU$\times$ saving.  The unsigned spread is \SdSixteenUA\ against \SdSixteenUN, but one bad NSGA-II run sets almost all of that gap and Levene's test does not resolve it ($p=\LeveneSixteenU$), so we claim no variance reduction.  The written rule transfers unchanged, reaching \HVsixteenUE\ unsigned (\ExpertSixteenU\% over NSGA-II, $p=\ExpertSixteenUP$) and \HVsixteenSE\ signed (\ExpertSixteenS\%, $p=\ExpertSixteenSP$); nothing in it was specific to $8\times8$.  The matched arm, the elicited prior alone, reaches \HVsixteenUL\ unsigned (\LLMpriorSixteenU\%, $p=\LLMpriorSixteenUP$) and \HVsixteenSL\ signed (\LLMpriorSixteenS\%, $p=\LLMpriorSixteenSP$); against the written rule it is \LLMvsExpSixteenU\% ($p=\LLMvsExpSixteenUP$) and \LLMvsExpSixteenS\% ($p=\LLMvsExpSixteenSP$), against \LLMvsExpert\% at $8\times8$.  At no width is the elicited prior the better source, yet the full system sits \VsLLMSixteenU\% above it unsigned (\VsLLMSixteenUWins\ pairs, $p=\VsLLMSixteenUP$) and \VsLLMSixteenS\% signed ($p=\VsLLMSixteenSP$): most of what guidance buys does not travel through the proposal distribution.}
+\newcommand{\SixteenText}{Over \SeedsSixteenU\ unsigned seeds the hypervolume is \HVsixteenUA\ for Approx-LG against \HVsixteenUN\ for NSGA-II (\PairSixteenU\%, \PairSixteenUWins\ pairs, $p\PairSixteenUP$) and \HVsixteenUR\ for random search; the signed template gives \HVsixteenSA\ against \HVsixteenSN\ (\PairSixteenS\%, \PairSixteenSWins\ pairs, $p\PairSixteenSP$).  The unsigned mean curve reaches the final NSGA-II hypervolume after \EvalsSixteenU\ evaluations, a \SpeedupSixteenU$\times$ saving.  The unsigned spread is \SdSixteenUA\ against \SdSixteenUN, equal to the precision Table~\ref{tab:search16} prints, and Levene's test does not separate them either ($p=\LeveneSixteenU$), so we claim no variance reduction.  The written rule transfers unchanged, reaching \HVsixteenUE\ unsigned (\ExpertSixteenU\% over NSGA-II, $p\ExpertSixteenUP$) and \HVsixteenSE\ signed (\ExpertSixteenS\%, $p\ExpertSixteenSP$); nothing in it was specific to $8\times8$.  The matched arm, the elicited prior alone, reaches \HVsixteenUL\ unsigned (\LLMpriorSixteenU\%, $p\LLMpriorSixteenUP$) and \HVsixteenSL\ signed (\LLMpriorSixteenS\%, $p\LLMpriorSixteenSP$); against the written rule it is \LLMvsExpSixteenU\% ($p\LLMvsExpSixteenUP$) and \LLMvsExpSixteenS\% ($p\LLMvsExpSixteenSP$), against \LLMvsExpert\% at $8\times8$.  At no width is the elicited prior the better source, yet the full system sits \VsLLMSixteenU\% above it unsigned (\VsLLMSixteenUWins\ pairs, $p\VsLLMSixteenUP$) and \VsLLMSixteenS\% signed ($p\VsLLMSixteenSP$): most of what guidance buys does not travel through the proposal distribution.}
 \newcommand{\SixteenVerdict}{At $16\times16$ the full guided system does separate from the carried-over rule, though the elicited prior on its own still does not, so the separation comes from the operators that propose designs and not from the advice}
 \newcommand{\SlotGenesEight}{60}
 \newcommand{\SlotGenesSixteen}{186}
@@ -286,16 +298,16 @@
 \newcommand{\VarRatioSixteenS}{1.8}
 \newcommand{\VarRatioSixteenU}{1.0}
 \newcommand{\VsExpertSixteenS}{+1.2}
-\newcommand{\VsExpertSixteenSP}{0.015}
+\newcommand{\VsExpertSixteenSP}{{=}0.015}
 \newcommand{\VsExpertSixteenSWins}{16/20}
 \newcommand{\VsExpertSixteenU}{+1.3}
-\newcommand{\VsExpertSixteenUP}{0.008}
+\newcommand{\VsExpertSixteenUP}{{=}0.008}
 \newcommand{\VsExpertSixteenUWins}{15/20}
 \newcommand{\VsLLMSixteenS}{+1.6}
-\newcommand{\VsLLMSixteenSP}{0.007}
+\newcommand{\VsLLMSixteenSP}{{=}0.007}
 \newcommand{\VsLLMSixteenSWins}{16/20}
 \newcommand{\VsLLMSixteenU}{+1.7}
-\newcommand{\VsLLMSixteenUP}{0.001}
+\newcommand{\VsLLMSixteenUP}{{=}0.001}
 \newcommand{\VsLLMSixteenUWins}{16/20}
 \newcommand{\WinsAdaptive}{11/20}
 \newcommand{\WinsExpert}{16/20}

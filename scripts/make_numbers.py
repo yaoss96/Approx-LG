@@ -27,6 +27,17 @@ def mac(name, value):
     M[name] = value
 
 
+PRAW = {}
+
+
+def pfmt_rel(p):
+    """Relation and value together: sites write $p\\Macro$ and get p<0.001
+    or p=0.021.  Keeping the relation outside printed "p =<0.001"."""
+    if p < 0.001:
+        return "{<}0.001"
+    return "{=}" + f"{p:.3f}".rstrip("0").rstrip(".")
+
+
 def load_search(tags):
     by = defaultdict(list)
     for tag in tags:
@@ -112,8 +123,17 @@ if "nsga2" in by8 and "approxlg" in by8:
         mac("LLMtok", f"{np.mean([(s['prompt_tokens']+s['completion_tokens'])/1000 for s in st]):.0f}")
 # Generations actually run.  A generation costs the budget only the circuits
 # it has not already bought, so a run takes far more than budget/mu of them.
+# Generations per arm, not only for the guided one: the budget counts
+# distinct circuits, so an arm whose proposals repeat more often takes more
+# generations for the same budget and gets more rounds of selection out of it.
+# Whether that favours the arm that wins is something a reader has to be able
+# to check.
 for tag, algo, key in (("n8L", "approxlg", "Eight"),
-                       ("n16u", "approxlg", "SixteenU")):
+                       ("n8abl", "approxlg_sham", "ShamEightG"),
+                       ("n8", "nsga2", "NsgaEightG"),
+                       ("n16u", "approxlg", "SixteenU"),
+                       ("n16u", "approxlg_sham", "ShamSixteenUG"),
+                       ("n16u", "nsga2", "NsgaSixteenUG")):
     rs = load_search([tag]).get(algo, [])
     if rs:
         mac(f"Gens{key}", f"{np.mean([len(r['hv_trace']) for r in rs]):.0f}")
@@ -276,6 +296,9 @@ if os.path.exists(f):
         mac("NullEightN", f"{nb['nsga2 8x8']['p95']:.2f}")
     if "nsga2 16x16u" in nb:
         mac("NullSixteen", f"{nb['nsga2 16x16u']['p95']:.2f}")
+        mac("NullSixteenSE", f"{nb['nsga2 16x16u'].get('p95_se', 0):.3f}")
+    if "approxlg 8x8" in nb:
+        mac("NullEightSE", f"{nb['approxlg 8x8'].get('p95_se', 0):.3f}")
     for row in st_.get("prior", []):
         if row["what"].startswith("elicited vs fixed"):
             mac("LLMvsExpertHolm", _pnum(row["p_holm"]))
@@ -322,8 +345,7 @@ if os.path.exists(f):
                 continue
             mac(f"EqTime{key}", f"{d['delta']:+.2f}")
             mac(f"EqTime{key}CI", f"[{d['ci'][0]:+.2f},\\,{d['ci'][1]:+.2f}]")
-            mac(f"EqTime{key}P",
-                "$<$0.001" if d["p"] < 0.001 else f"{d['p']:.3f}".rstrip("0"))
+            mac(f"EqTime{key}P", pfmt_rel(d["p"]))
             mac(f"Match{key}", f"{d['median_evals_to_match']:.0f}")
             mac(f"BreakEven{key}", f"{d['break_even_s']:.2f}")
         mac("EqTimeEvals", f"{int(round(w['t_match_s'] / w['per_circuit_s']))}")
@@ -437,8 +459,8 @@ for tag, key in (("n16u", "U"), ("n16s", "S")):
             pv, wn, nn_ = wilcoxon_paired(A_, B_)
             mac(f"{prefix}{key}", f"{100*np.mean((A_-B_)/B_):+.1f}")
             # never print a p-value as 0.00; a reader reads that as exactly nil
-            mac(f"{prefix}{key}P",
-                "$<$0.001" if pv < 0.001 else f"{pv:.3f}".rstrip("0"))
+            mac(f"{prefix}{key}P", pfmt_rel(pv))
+            PRAW[f"{prefix}{key}P"] = float(pv)
             mac(f"{prefix}{key}Wins", f"{wn}/{nn_}")
 
         _pair("approxlg", "nsga2", "PairSixteen")
@@ -632,6 +654,21 @@ mac("NlibExcluded", sum(1 for r in ok if r["NMED"] > 0.10))
 mac("NlibExact", sum(1 for r in ok if r["NMED"] < 1e-12))
 mac("NlibUsed", sum(1 for r in ok if 1e-12 <= r["NMED"] <= 0.10))
 
+# The application study draws its references from the 8x8 pool, which goes
+# through the same collection and RTL cross-check as the 16x16 one but is
+# never counted anywhere else in the paper.
+f = os.path.join(RESULTS, "libs_n8.jsonl")
+fv = os.path.join(TABS if False else RESULTS, "libs_verify_n8.json")
+if os.path.exists(f):
+    rows8 = [json.loads(l) for l in open(f) if l.strip()]
+    mac("NlibEightTotal", len(rows8))
+    mac("NlibEightUsed",
+        sum(1 for r in rows8 if 1e-12 <= r.get("NMED", 0) <= 0.10))
+    if os.path.exists(fv):
+        v8 = json.load(open(fv))
+        mac("NlibEightVerified",
+            sum(1 for x in v8 if x.get("status") == "match"))
+
 # ---------------------------------------------------------------- SOTA
 for key, name in (("Eight", "sota8"), ("Sixteen", "sota16"),
                   ("SixteenU", "sota16u"), ("SixteenS", "sota16s"),
@@ -795,6 +832,12 @@ if os.path.exists(f):
         mac("BoxGainLo", f"{min(gains):+.1f}")
         mac("BoxGainHi", f"{max(gains):+.1f}")
         mac("BoxSig", sum(1 for b in boxes if b["p"] == b["p"] and b["p"] < 0.05))
+        _bp = sorted(b["p"] for b in boxes if b["p"] == b["p"])
+        _m, _run, _adj = len(_bp), 0.0, []
+        for _i, _x in enumerate(_bp):
+            _run = max(_run, (_m - _i) * _x)
+            _adj.append(min(1.0, _run))
+        mac("BoxSigHolm", sum(1 for x in _adj if x < 0.05))
     for tag, key in (("eps", "Eps"), ("igd_plus", "Igd")):
         d = s.get(tag)
         if d:
@@ -917,33 +960,34 @@ if "HVsixteenUA" in M:
     t = (f"Over \\SeedsSixteenU\\ unsigned seeds the hypervolume is "
          f"\\HVsixteenUA\\ for Approx-LG against \\HVsixteenUN\\ for NSGA-II "
          f"(\\PairSixteenU\\%, \\PairSixteenUWins\\ pairs, "
-         f"$p=\\PairSixteenUP$) and \\HVsixteenUR\\ for random search; the "
+         f"$p\\PairSixteenUP$) and \\HVsixteenUR\\ for random search; the "
          f"signed template gives \\HVsixteenSA\\ against \\HVsixteenSN\\ "
          f"(\\PairSixteenS\\%, \\PairSixteenSWins\\ pairs, "
-         f"$p=\\PairSixteenSP$).  The unsigned mean curve reaches the final "
+         f"$p\\PairSixteenSP$).  The unsigned mean curve reaches the final "
          f"NSGA-II hypervolume after \\EvalsSixteenU\\ evaluations, a "
          f"\\SpeedupSixteenU$\\times$ saving.  The unsigned spread is "
-         f"\\SdSixteenUA\\ against \\SdSixteenUN, but one bad NSGA-II run sets "
-         f"almost all of that gap and Levene's test does not resolve it "
-         f"($p=\\LeveneSixteenU$), so we claim no variance reduction.")
+         f"\\SdSixteenUA\\ against \\SdSixteenUN, equal to the precision "
+         f"Table~\\ref{{tab:search16}} prints, and Levene's test does not "
+         f"separate them either ($p=\\LeveneSixteenU$), so we claim no "
+         f"variance reduction.")
     if "HVsixteenUE" in M:
         t += (f"  The written rule transfers unchanged, reaching "
               f"\\HVsixteenUE\\ unsigned (\\ExpertSixteenU\\% over NSGA-II, "
-              f"$p=\\ExpertSixteenUP$) and \\HVsixteenSE\\ signed "
-              f"(\\ExpertSixteenS\\%, $p=\\ExpertSixteenSP$); nothing in it "
+              f"$p\\ExpertSixteenUP$) and \\HVsixteenSE\\ signed "
+              f"(\\ExpertSixteenS\\%, $p\\ExpertSixteenSP$); nothing in it "
               f"was specific to $8\\times8$.")
     if "HVsixteenUL" in M:
         t += (f"  The matched arm, the elicited prior alone, reaches "
               f"\\HVsixteenUL\\ unsigned (\\LLMpriorSixteenU\\%, "
-              f"$p=\\LLMpriorSixteenUP$) and \\HVsixteenSL\\ signed "
-              f"(\\LLMpriorSixteenS\\%, $p=\\LLMpriorSixteenSP$); against the "
+              f"$p\\LLMpriorSixteenUP$) and \\HVsixteenSL\\ signed "
+              f"(\\LLMpriorSixteenS\\%, $p\\LLMpriorSixteenSP$); against the "
               f"written rule it is \\LLMvsExpSixteenU\\% "
-              f"($p=\\LLMvsExpSixteenUP$) and \\LLMvsExpSixteenS\\% "
-              f"($p=\\LLMvsExpSixteenSP$), against \\LLMvsExpert\\% at "
+              f"($p\\LLMvsExpSixteenUP$) and \\LLMvsExpSixteenS\\% "
+              f"($p\\LLMvsExpSixteenSP$), against \\LLMvsExpert\\% at "
               f"$8\\times8$.  At no width is the elicited prior the better "
               f"source, yet the full system sits \\VsLLMSixteenU\\% above it "
-              f"unsigned (\\VsLLMSixteenUWins\\ pairs, $p=\\VsLLMSixteenUP$) "
-              f"and \\VsLLMSixteenS\\% signed ($p=\\VsLLMSixteenSP$): most of "
+              f"unsigned (\\VsLLMSixteenUWins\\ pairs, $p\\VsLLMSixteenUP$) "
+              f"and \\VsLLMSixteenS\\% signed ($p\\VsLLMSixteenSP$): most of "
               f"what guidance buys does not travel through the proposal "
               f"distribution.")
     mac("SixteenText", t)
@@ -953,8 +997,8 @@ if "HVsixteenUA" in M:
     if "VsExpertSixteenU" in M:
         du = float(M["VsExpertSixteenU"])
         ds = float(M.get("VsExpertSixteenS", 0))
-        pu_ = float(M["VsExpertSixteenUP"])
-        ps_ = float(M.get("VsExpertSixteenSP", 1.0))
+        pu_ = PRAW.get("VsExpertSixteenUP", 1.0)
+        ps_ = PRAW.get("VsExpertSixteenSP", 1.0)
         if (du > 0 and pu_ < 0.05) or (ds > 0 and ps_ < 0.05):
             # The comparison behind this branch is the *whole guided system*
             # against the written rule, not the elicited prior against it, and
@@ -986,7 +1030,10 @@ if os.path.exists(f):
              f"{len(boxes)} boxes and two indicators that need none.  The "
              f"sign survives {pos} of {len(boxes)} boxes, from "
              f"{min(g):+.1f}\\% to {max(g):+.1f}\\%, reaching $p<0.05$ in "
-             f"{nsig}.")
+             f"{nsig} uncorrected and in \\BoxSigHolm\\ after Holm inside "
+             f"the {len(boxes)}-box family.  What the table is read for is the "
+             f"sign holding under every box, not the threshold being crossed "
+             f"under one of them.")
         agree = e and i and e["gain"] > 0 and i["gain"] > 0
         if e and i:
             t += (f"  Both box-free indicators disagree: against the union "
@@ -1049,6 +1096,7 @@ defaults = {
     "MedianADPSixteenS": "0", "MedianPDPSixteenS": "0",
     "MeanADPSixteenS": "0", "SotaSixteenSAny": "0",
     "NlibTotal": "0", "NlibVerified": "0", "NlibExcluded": "0",
+    "NlibEightTotal": "0", "NlibEightVerified": "0", "NlibEightUsed": "0",
     "HVsixteenUA": "0",
     "HVsixteenUN": "0",
     "HVsixteenUR": "0",
@@ -1137,6 +1185,9 @@ defaults = {
     "ShamSixteenSHolm": "1", "ShamSixteenSN": "0", "ShamSixteenSWins": "--",
     "ShamEightA": "0", "ShamSixteenUA": "0", "ShamSixteenSA": "0",
     "NullEight": "0", "NullEightMed": "0", "NullEightN": "0",
+    "NullEightSE": "0", "NullSixteenSE": "0",
+    "GensShamEightG": "0", "GensNsgaEightG": "0",
+    "GensShamSixteenUG": "0", "GensNsgaSixteenUG": "0",
     "NullSixteen": "0", "LLMvsExpertHolm": "1",
     "ExpertVsSham": "0", "ExpertVsShamHolm": "1",
     "GAvsRandom": "0", "GAvsRandomP": "1",
@@ -1153,6 +1204,7 @@ defaults = {
     "NPriorAnswers": "0", "PriorHeadMatch": "0", "PriorTopThree": "0",
     "PriorExactFar": "0",
     "NBoxes": "0", "BoxGainLo": "0", "BoxGainHi": "0", "BoxSig": "0",
+    "BoxSigHolm": "0",
     "EpsGain": "0", "EpsP": "1.00", "EpsWins": "--",
     "IgdGain": "0", "IgdP": "1.00", "IgdWins": "--",
     "SecPerCircuit": "0", "TimeApproxLG": "0", "TimeNSGA": "0",

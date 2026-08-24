@@ -113,7 +113,7 @@ def main():
         fh.write(
             # print the total as the three group shares actually add up to,
             # so a reader who sums the parts does not land one point away
-            f"{len(rows)} styles cover {u_pct + o_pct + b_pct:.1f}"
+            f"{len(rows)} styles cover {round(u_pct, 1) + round(o_pct, 1) + round(b_pct, 1):.1f}"
             f"\\,\\% of the approximate slots, and they mix under-estimating "
             f"cells ({names(under)}, {u_pct:.1f}\\,\\%) with over-estimating "
             f"ones ({names(over)}, {o_pct:.1f}\\,\\%) and the balanced "

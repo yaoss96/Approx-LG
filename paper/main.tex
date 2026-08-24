@@ -76,20 +76,19 @@ The second contribution is the set of controls that says \emph{which part} of
 the system earned that, and which we did not find in the LLM-for-optimisation
 literature: the placebo above, the same proposal-distribution channel driven
 instead by a fixed designer prior and by online credit assignment, a
-random-forest surrogate spending the same budget, and a wall-clock accounting
-beside the evaluation-budget one.  They relocate the credit, and the relocation
-is the finding.  What the model supplies is \emph{candidate designs}, not a
-policy for the variation operator: at no width is the elicited proposal
-distribution the better source, a prior estimated from the run's own data does
-not help at all, and neither extended reasoning (\Think\%) nor a larger model
-(\Pro\%) moves it measurably.  The placebo alone already beats
-\SotaShamSixteenADP\% of the same library, so most of the published-design
-result belongs to the template and the flow.  Counted in wall clock rather than
-evaluations the guided arm \emph{loses} on this open flow, by \EqTimeNSGA\%
-against NSGA-II given the same seconds, and becomes worthwhile only once one
-characterisation costs about \BreakEvenNSGA\,s.  Every one of these controls is
-cheap to run, and on this evidence a study without them would have credited the
-model with all three results.
+random-forest surrogate on the same budget, and a wall-clock accounting beside
+the evaluation-budget one.  They relocate the credit, and the relocation is the
+finding.  What the model supplies is \emph{candidate designs}, not a policy for
+the variation operator: at no width is the elicited proposal distribution the
+better source, a prior estimated from the run's own data does not help at all,
+and neither extended reasoning (\Think\%) nor a larger model (\Pro\%) moves it.
+The placebo alone beats \SotaShamSixteenADP\% of the same library, so most of
+that margin is the template and the flow; and counted in wall clock rather than
+evaluations the guided arm \emph{loses} by \EqTimeNSGA\%, becoming worthwhile
+only once a characterisation costs about \BreakEvenNSGA\,s.  Each control is
+cheap to run, and without them this paper would have credited the model with all
+three of its headline numbers: the hypervolume gain, the win rate over published
+designs, and the saving per evaluation.
 \end{abstract}
 
 \begin{CCSXML}
@@ -169,12 +168,15 @@ correct by construction and the model's contribution can be measured exactly.
       elicited proposal distribution over compressor styles that biases
       \emph{every} mutation, and search-space refinement.
 \item The controls a claim about LLM guidance needs and that we did not find in
-      the LLM-for-optimisation literature: the same proposal-distribution
-      channel driven instead by a fixed designer prior and by online credit
-      assignment, a measurement of what a guidance outage costs, and the
-      sensitivity of the comparison to the reference box.  They move the
-      credit from where we first put it, and they are the reason we can say
-      what the model does and does not buy.
+      the LLM-for-optimisation literature: a \emph{placebo} arm that walks the
+      guided control flow with every answer discarded, the same
+      proposal-distribution channel driven instead by a fixed designer prior
+      and by online credit assignment, a random-forest surrogate spending the
+      same budget, a wall-clock accounting beside the evaluation-budget one, a
+      measurement of what a guidance outage costs, and the sensitivity of the
+      comparison to the reference box.  They move the credit from where we
+      first put it, and they are the reason we can say what the model does and
+      does not buy.
 \item A fully open flow (Yosys\,+\,ABC\,+\,Nangate45, activity-based power from
       the mapped netlist) applied identically to our designs and to the
       \NlibVerified\ published RTL designs that reproduce their own RTL under
@@ -187,6 +189,7 @@ correct by construction and the model's contribution can be measured exactly.
 
 \section{Background and Related Work}
 \subsection{Approximate multiplier design}
+\label{sec:amdesign}
 An $N\times N$ multiplier generates $N^2$ partial products, compresses them to
 two rows and adds those rows; approximation enters at all three stages.
 \emph{Truncation} discards the $T$ least-significant columns and is the
@@ -567,9 +570,9 @@ needs.  Section~\ref{sec:robust} shows what that cap costs.
 
 The guidance cost is bounded by construction: warm start is one call, and each
 generation issues at most one injection, one guided-mutation, one prior and one
-refinement call, gated by their periods, so a generation costs at most
-$1+\tfrac{1}{2}+\tfrac{1}{3}+\tfrac{1}{5}\approx2$ calls whatever the
-population does.  A run is not $B/\mu$ generations long, however: a generation
+refinement call, gated by their periods, so a generation costs four calls at
+worst and $1+\tfrac{1}{2}+\tfrac{1}{3}+\tfrac{1}{5}\approx2$ averaged over
+generations, whatever the population does.  A run is not $B/\mu$ generations long, however: a generation
 is charged only for the circuits it has not already bought, and repeats become
 common once the population concentrates, so a \Budget-evaluation run at
 $\mu=32$ takes \GensEight\ generations rather than twelve, and the two numbers
@@ -619,10 +622,12 @@ its own.  We therefore fix the protocol before the results.
 
 \textbf{Primary endpoint.}  One comparison carries the paper's claim: the
 guided arm against the \emph{sham} arm of Section~\ref{sec:controls}, at each
-width.  Everything else -- the reference baselines, the prior sources, the
-ablation, the reference boxes -- is secondary, and each of those families is
-corrected within itself by Holm's step-down procedure, which assumes nothing
-about the dependence between the tests it corrects.
+width.  Everything else is secondary, in five families: the reference baselines
+at $8\times8$, the prior sources, the ablation, the reference boxes, and the
+$16\times16$ comparisons, which hold the surrogate and the transferred prior as
+well as the guided arm and so are corrected together.  Each family is corrected
+within itself by Holm's step-down procedure, which assumes nothing about the
+dependence between the tests it corrects.
 Section~\ref{sec:primary} reports that one comparison, ahead of every secondary
 family.  The tables quote each row's uncorrected $p$, because a corrected value
 is a property of the family and not of the row; the corrected one is given in
@@ -676,10 +681,10 @@ corrected, $\hat{A}_{12}=\ShamSixteenSA$).  At $8\times8$ the point estimate is
 just as large, \ShamEight\% (CI \ShamEightCI, \ShamEightWins\ pairs), but the
 interval covers zero and the test does not reject: $p\ShamEightP$, which the
 correction leaves at $p\ShamEightHolm$, with $\hat{A}_{12}=\ShamEightA$.  That
-last figure is paired over the \ShamEightN\ seeds the two arms share and is
-larger than the gap between the same two rows of Table~\ref{tab:search}, where
-the guided arm is averaged over all \SeedsEight\ of its seeds, ten of which the
-sham arm does not have.
+\ShamEight\% is paired over the \ShamEightN\ seeds the two arms share, which is
+why it is larger than the gap between the same two rows of
+Table~\ref{tab:search}, where the guided arm is averaged over all
+\SeedsEight\ of its seeds, ten of which the sham arm does not have.
 
 The $8\times8$ number is not a small effect measured precisely, and the null
 band of Section~\ref{sec:stats} disposes of it without appeal to any threshold:
@@ -689,11 +694,14 @@ differences with a median of \NullEightMed\% and a 95th percentile of
 \ShamEight\% is inside the range this pipeline manufactures from nothing.  We
 therefore do not claim it, at either sign of the effect.  At $16\times16$ the
 band is \NullSixteen\% and both effects clear it, so the rule holds at both
-signednesses; the margin deserves stating alongside the verdict, because the
-unsigned interval reaches down to the band and the signed one reaches into it.
-The effects are clear of this pipeline's own noise at their centres and only
-marginally so at their worst case, and more seeds, not a larger claim, are what
-would settle that.
+signednesses; the margin deserves stating alongside the verdict.  The band is
+itself an estimate, so we give its precision too: over the resamples behind it
+its Monte-Carlo standard error is $\pm\NullSixteenSE$ percentage points, small
+enough that the comparison does not turn on how the band was drawn.  What the
+comparison does sit close to is the band's edge -- the unsigned interval reaches
+down to it and the signed one reaches into it -- so the effects are clear of
+this pipeline's own noise at their centres and marginal at their worst case,
+and more seeds, not a larger claim, are what would settle that.
 
 One thing has to be checked before any of it is read as the model's doing:
 whether the placebo is simply a weaker arm, in which case the primary effect
@@ -703,8 +711,20 @@ Against plain NSGA-II the sham arm sits at \ShamNsgaU\% unsigned (CI
 \ShamNsgaEight\% at $8\times8$ ($p\ShamNsgaEightP$).  Every one of them is
 inside the null band and none is resolvable, so carrying the guided control
 flow with nothing in it neither helps nor hurts, and the \ShamSixteenU\% above
-is not a comparison against a handicapped opponent.  The claim the paper
-carries is accordingly the narrow one.  On the
+is not a comparison against a handicapped opponent.
+
+A budget of distinct circuits does not equalise everything, and the one thing it
+leaves free is worth reporting.  An arm whose proposals repeat more often needs
+more generations to spend the same budget, and more generations mean more rounds
+of selection.  The arms do differ: at $16\times16$ unsigned the guided arm
+finishes in \GensSixteenU\ generations, the sham arm in \GensShamSixteenUG\ and
+NSGA-II in \GensNsgaSixteenUG, and at $8\times8$ the three are \GensEight,
+\GensShamEightG\ and \GensNsgaEightG.  The ordering is the same at both widths
+and it runs \emph{against} the arm that wins: guided proposals are the least
+repetitive, so the guided arm buys its budget in the fewest generations and gets
+the fewest rounds of selection out of it.  Equalising generations instead of
+circuits could therefore widen the effect reported above; it cannot be what
+created it.  The claim the paper carries is accordingly the narrow one.  On the
 larger template, where $500$ evaluations leave the space far from exhausted,
 the content of the model's answers -- not the loop that fetches them -- is worth
 a real and repeatable gain in hypervolume; at $8\times8$, where the space is
@@ -721,7 +741,10 @@ description rather than as confirmation.
 \Description{Two line plots of hypervolume against the number of EDA evaluations, one for the 8x8 template and one for the 16x16 unsigned template, with one curve per search algorithm and a shaded one-sigma band around each.}
 \caption{Hypervolume against EDA budget (mean, shaded $\pm1\sigma$), $8\times8$
 and $16\times16$ unsigned; per-arm run counts are in Tables~\ref{tab:search}
-and~\ref{tab:prior}.  ``$+$ fixed prior'' and ``$+$ RF surrogate'' are NSGA-II
+and~\ref{tab:prior} for the left panel and Table~\ref{tab:search16} for the
+right one.  Ten of the eleven arms are drawn; the elicited-prior arm of
+Section~\ref{sec:prior} is left out because its curve lies on NSGA-II's and the
+panels are already crowded, and its numbers are in the tables.  ``$+$ fixed prior'' and ``$+$ RF surrogate'' are NSGA-II
 with the written designer prior of Section~\ref{sec:prior} and with the
 surrogate-assisted loop of Section~\ref{sec:surrogate}.  ``Sham guidance'' is
 the placebo of Section~\ref{sec:controls}: the guided control flow with every
@@ -768,7 +791,11 @@ gains power because the effect is right-skewed -- the median pair gains
 \PairedMedian\%, so a few large wins carry the mean and the signed-rank
 statistic, which sees only ranks, discards exactly what makes the mean look
 good.  The same arm wins essentially every pair against random search, the GA,
-the two reproduced methods and the LLM-only searcher ($p\le0.03$ each).  \emph{Against NSGA-II itself the difference is not
+the two reproduced methods and the LLM-only searcher ($p\le0.03$ each,
+uncorrected).  Those five are not one of the families of
+Section~\ref{sec:stats} and the weakest of them would not survive a correction
+over five tests, which costs nothing here because no claim in this paper rests
+on beating random search.  \emph{Against NSGA-II itself the difference is not
 significant}, and we say so rather than lean on the \SeedsEight-seed mean: an
 effect this size needs many more runs or a larger problem, and
 Section~\ref{sec:hv16} supplies the second.  The first ten seeds of this campaign
@@ -840,7 +867,7 @@ An ablation that deletes an operator cannot say whether the \emph{model} or the
 everything but provenance: sampler, crossover, mutation rates, $\varepsilon$,
 the geometric rank draw and the refresh period are identical, and only the
 source of $\pi(\cdot\mid j-T)$ changes.  The \emph{fixed} prior is written from
-the rule of Section~\ref{sec:space} and never fitted: the error a cell may
+the rule of Section~\ref{sec:amdesign} and never fitted: the error a cell may
 contribute halves per column above the truncation point, so styles are ranked
 by the distance of their measured $\overline{|ED|}$ from $\tau_{\max}2^{-d}$
 and the list is reordered to alternate bias sign.  The \emph{adaptive} prior
@@ -872,10 +899,17 @@ from nothing at this width (\NullEightN\%), so there is no room in them for an
 effect we could have missed.  What this channel can carry is saturated well
 below the capability of the endpoints we tried, which is the same story the
 rest of the section tells: the ranked list is a small object, a designer can
-write it down, and a better model writes down much the same thing.  It does not
-license a claim about every model -- two points on one vendor's family is two
-points -- but it does say that the ceiling here is the channel rather than the
-reasoning behind it.
+write it down, and a better model writes down much the same thing.  Two limits
+belong with that sentence.  Two points on one vendor's family are two points,
+and they license nothing about models in general.  More importantly, both
+re-runs change the endpoint behind the \emph{proposal distribution} -- the one
+channel this section has just shown buys nothing -- and not the operators that
+Section~\ref{sec:ablation} and Section~\ref{sec:hv16} say carry the value.
+Whether a stronger model writes better warm starts, better Pareto-gap
+injections or better dominating children is a question these two runs do not
+touch.  The claim is therefore about the channel they were measured on: that
+channel is saturated, and it is the part of the system a designer can replace
+with a written rule.
 
 \subsection{The other way to spend a small budget}
 \label{sec:surrogate}
@@ -894,8 +928,8 @@ the three, so the informative width is the larger one, and the two templates
 below are the $16\times16$ ones of Section~\ref{sec:hv16}, scored against the
 same sham arm as the primary endpoint.  \SurrogateText\ It is a real method
 rather than a straw man, recovering roughly half of what guidance buys, and the
-guided arm separates from it on one template of the two once the prior family
-is corrected.
+guided arm separates from it on one template of the two once the $16\times16$
+family of Section~\ref{sec:stats} is corrected.
 
 \subsection{\texorpdfstring{Scaling to $16\times16$}{Scaling to 16x16}}
 \label{sec:hv16}
@@ -939,22 +973,25 @@ including the sham arm that Section~\ref{sec:primary} pairs against.
 \label{sec:walltime}
 Counting EDA evaluations is the right currency only when an evaluation
 dominates the run.  On this flow it does not.  Measured on the $16\times16$
-campaign, a characterisation costs \SecPerCircuitWide\,s and guidance costs
-\GuidanceSecondsWide\,s over \CallsSixteenU\ calls.  Both are slightly below
-the $8\times8$ figures of Section~\ref{sec:loop}, for the reason given there: a
-$16\times16$ generation buys more circuits it has not seen before, so a run
-finishes its larger budget in \GensSixteenU\ generations against \GensEight\ at
-$8\times8$, and fewer generations mean fewer calls.  Either way an evaluation
-budget quietly hands the guided arm minutes that the unguided arms could have
-spent evaluating.  We therefore re-ran NSGA-II, the sham arm and the
+campaign, a characterisation costs \SecPerCircuitWide\,s, a little \emph{more}
+than the \SecPerCircuit\,s of Section~\ref{sec:loop} as a larger netlist should,
+while guidance costs \GuidanceSecondsWide\,s over \CallsSixteenU\ calls, a
+little \emph{less}: a $16\times16$ generation buys more circuits the run has not
+seen before, so the larger budget is finished in \GensSixteenU\ generations
+against \GensEight\ at $8\times8$, and fewer generations mean fewer calls.
+Either way an evaluation budget quietly hands the guided arm minutes that the
+unguided arms could have spent evaluating.  We therefore re-ran NSGA-II, the sham arm and the
 surrogate at the budget those minutes actually buy, \EqTimeEvals\ evaluations
 instead of $500$, and compared every arm at the wall clock the guided run
-reaches its own budget at, \EqTimeSeconds\,s.
+reaches its own budget at, \EqTimeSeconds\,s.  The per-circuit figure is
+rounded for display, so $500\times\SecPerCircuitWide+\GuidanceSecondsWide$ does
+not reproduce that number exactly; the accounting itself uses the unrounded
+time.
 
 \emph{Under that accounting the guided arm loses.}  It is \EqTimeNSGA\%
-against NSGA-II (CI \EqTimeNSGACI, $p=\EqTimeNSGAP$), \EqTimeRF\% against the
-surrogate ($p=\EqTimeRFP$) and \EqTimeSham\% against the sham arm
-($p=\EqTimeShamP$).  The \ShamSixteenU\% it gains per evaluation is smaller
+against NSGA-II (CI \EqTimeNSGACI, $p\EqTimeNSGAP$), \EqTimeRF\% against the
+surrogate ($p\EqTimeRFP$) and \EqTimeSham\% against the sham arm
+($p\EqTimeShamP$).  The \ShamSixteenU\% it gains per evaluation is smaller
 than what the same seconds buy in extra evaluations.
 
 This does not overturn the evaluation-budget result; it prices it.  NSGA-II
@@ -1087,13 +1124,16 @@ can separate those from the search that used them.
 
 \begin{table}[t]
 \caption{Application quality along the Approx-LG $8\times8$ front.  Each design
-is followed by the published design of matching \nmed{}, drawn from the same
-$8\times8$ libraries this paper characterises in Section~\ref{sec:sota16} and
-selected by \nmed{} alone.  ``Lossless'' means every one of the six images came
-back bit-exact, so the PSNR is infinite rather than large.  The workloads run at
-$8\times8$ because the CNN substitutes a $256\times256$ product table, so this
-table prices the \emph{front}, not the guidance: what guidance is worth is
-Section~\ref{sec:primary}, and it is worth it at $16\times16$.  Two rows post a
+is followed by the published design of matching \nmed{}.  Those references come
+from an $8\times8$ pool collected and cross-checked exactly as the $16\times16$
+one of Section~\ref{sec:sota16}: \NlibEightTotal\ designs collected,
+\NlibEightVerified\ reproducing their own RTL bit-exactly under our gate-level
+evaluator, \NlibEightUsed\ of those inside the error window, and one picked per
+row as the closest in \nmed{}.  ``Lossless'' means every one of the six images
+came back bit-exact, so the PSNR is infinite rather than large.  The workloads
+run at $8\times8$ because the CNN substitutes a $256\times256$ product table, so
+this table prices the \emph{front}, not the guidance: what guidance is worth is
+Section~\ref{sec:primary}, and it is worth it at $16\times16$.  Four rows post a
 top-1 above the exact multiplier; at 8-bit quantisation the approximation is a
 small perturbation the network absorbs, the differences are a fraction of a
 point, and we do not read them as improvements.}
@@ -1142,8 +1182,8 @@ averages the six standard images while one of them is shown.  The claim the
 figure makes is the energy one, and it holds in every column: the Approx-LG
 design costs 30 to 54\% less while the two images are indistinguishable.  It
 makes no claim about which side wins on PSNR, because at matched accuracy that
-is noise -- ours is ahead in three of these four blends and, over both
-workloads of Table~\ref{tab:apps}, in five of the eight pairs.}
+is noise -- ours is ahead in three of these four blends and, counting both
+workloads for the same four pairs, in five of those eight comparisons.}
 \label{fig:appsblend}
 \end{figure}
 
