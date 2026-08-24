@@ -267,7 +267,8 @@ if os.path.exists(f):
         mac(f"Sham{k}Wins", f"{r['wins']}/{r['npairs']}")
         mac(f"Sham{k}A", f"{r['a12']:.2f}")
     KEYM = {"extended reasoning vs the default endpoint": "Think",
-            "a larger model vs the default endpoint": "Pro"}
+            "a larger model vs the default endpoint": "Pro",
+            "a larger model, whole system (unsigned)": "ProFull"}
     for r in st_.get("model", []):
         k = KEYM.get(r["what"])
         if not k:
@@ -1145,6 +1146,8 @@ defaults = {
     "ThinkN": "0", "ThinkA": "0",
     "Pro": "0", "ProCI": "--", "ProP": "1", "ProHolm": "1",
     "ProN": "0", "ProA": "0",
+    "ProFull": "0", "ProFullCI": "--", "ProFullP": "1", "ProFullHolm": "1",
+    "ProFullN": "0", "ProFullA": "0",
     "ShamNsgaU": "0", "ShamNsgaUCI": "--", "ShamNsgaUP": "1",
     "ShamNsgaS": "0", "ShamNsgaSCI": "--", "ShamNsgaSP": "1",
     "ShamNsgaEight": "0", "ShamNsgaEightCI": "--", "ShamNsgaEightP": "1",

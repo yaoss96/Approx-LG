@@ -286,6 +286,18 @@ def main():
                 r = paired(merged, "variant", "base")
                 r["what"] = f"{lab} vs the default endpoint"
                 model.append(r)
+    # The two arms above only change the endpoint behind the proposal
+    # distribution, which is the one channel shown to buy nothing.  This one
+    # changes it behind the whole guided system, at the width the paper's
+    # claim lives at, so it asks whether a stronger model writes better
+    # candidate designs rather than better ranked lists.
+    full = load(["n16upro"])
+    if "approxlg" in full and "approxlg" in u16:
+        merged = {"variant": full["approxlg"], "base": u16["approxlg"]}
+        if len(set(merged["variant"]) & set(merged["base"])) >= 6:
+            r = paired(merged, "variant", "base")
+            r["what"] = "a larger model, whole system (unsigned)"
+            model.append(r)
     if model:
         for r, q in zip(model, holm([r["p"] for r in model])):
             r["p_holm"] = float(q)
