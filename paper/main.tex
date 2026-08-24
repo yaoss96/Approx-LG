@@ -36,8 +36,8 @@
 
 \begin{document}
 
-\title{Approx-LG: LLM-Guided Exploration of Approximate-Multiplier
-Design Spaces}
+\title{Approx-LG: Attributing the Gains of LLM-Guided
+Approximate-Multiplier Design}
 
 \author{Anonymous Author}
 \affiliation{%
@@ -53,43 +53,40 @@ Approximate multipliers trade accuracy for area, delay and energy, but the
 search is discrete and expensive: every candidate must be simulated for error
 and synthesised for power, performance and area.  We present
 \textbf{Approx-LG}, which couples NSGA-II with a large language model (LLM)
-reasoning about the circuit in symbolic, designer-level terms.  The LLM never
-emits RTL; it warm-starts the population, injects Pareto-gap candidates,
-supplies a \emph{proposal distribution} over compressor styles, and narrows the
-search space, all fail-closed.  Every design point is characterised by
+reasoning about the circuit in symbolic, designer-level terms through a guidance
+interface that any knowledge source can fill.  The LLM never emits RTL, and every design point is characterised by
 bit-accurate simulation and a full Yosys/ABC mapping onto a 45\,nm library,
-verified bit-exactly against RTL and the mapped netlist.
+verified bit-exactly against both.
 
-Guidance earns its place where the space is large enough to need it.  Our
-primary comparison is not against NSGA-II but against a \emph{sham} arm that
-walks the same guided control flow with every answer discarded, which isolates
-what the model \emph{says} from the loop that carries it.  Against that placebo
-Approx-LG is worth \ShamSixteenU\% and \ShamSixteenS\% of hypervolume on the
-unsigned and signed $16\times16$ templates ($p\ShamSixteenSHolm$ after
-correction, $\hat{A}_{12}=\ShamSixteenUA$ unsigned), and \ShamEight\% at
-$8\times8$, which is inside the noise this pipeline produces from nothing and
-which we therefore do not claim.  The fronts it returns beat
-\SotaSixteenADP\% of \NrefSixteen\ published designs on area--delay product at
-equal \nmed{} \emph{and} MRE.
+Gains reported for a model inside such a loop are almost never separated from
+the loop that carries them, and the separation changes the answer.  Our first
+contribution is the suite that performs it, which we propose as the bar such a
+claim should clear: a \emph{placebo} arm walking the guided control flow with
+every answer discarded, the same interface driven instead by a written designer
+prior and by online credit assignment, a random-forest surrogate on the same
+budget, an accounting in wall clock beside the one in evaluations, and the cost
+of an endpoint outage.
 
-The second contribution is the set of controls that says \emph{which part} of
-the system earned that, and which we did not find in the LLM-for-optimisation
-literature: the placebo above, the same proposal-distribution channel driven
-instead by a fixed designer prior and by online credit assignment, a
-random-forest surrogate on the same budget, and a wall-clock accounting beside
-the evaluation-budget one.  They relocate the credit, and the relocation is the
-finding.  What the model supplies is \emph{candidate designs}, not a policy for
-the variation operator: at no width is the elicited proposal distribution the
-better source, a prior estimated from the run's own data does not help at all,
-and neither extended reasoning nor a larger model changes anything measurably --
-\Think\% and \Pro\% on that channel, \ProFull\% on the whole guided system.
-The placebo alone beats \SotaShamSixteenADP\% of the same library, so most of
-that margin is the template and the flow; and counted in wall clock rather than
-evaluations the guided arm \emph{loses} by \EqTimeNSGA\%, becoming worthwhile
-only once a characterisation costs about \BreakEvenNSGA\,s.  Each control is
-cheap to run, and without them this paper would have credited the model with all
-three of its headline numbers: the hypervolume gain, the win rate over published
-designs, and the saving per evaluation.
+What they return is a calibrated answer rather than a headline.  Against the
+placebo the model's content is worth \ShamSixteenU\% and \ShamSixteenS\% of
+hypervolume at $16\times16$ ($p\ShamSixteenSHolm$ corrected,
+$\hat{A}_{12}=\ShamSixteenUA$) and \ShamEight\% at $8\times8$, inside the noise
+the pipeline produces from nothing and therefore not claimed.  At no width is
+the elicited proposal distribution a better source than a designer's written
+rule through the same interface; a surrogate recovers about half the gain
+without inference; and neither extended reasoning (\Think\%), a larger model
+(\Pro\%), nor that larger model behind the whole system (\ProFull\%) moves it.
+In wall clock the guided arm \emph{loses} by \EqTimeNSGA\%, which locates a
+break-even, not a defect: below about \BreakEvenNSGA\,s per characterisation the
+written prior or the surrogate is the better buy, and above it -- where a
+commercial sign-off flow sits -- the guided loop.
+
+The template is strong regardless, its fronts beating \SotaSixteenADP\% of
+\NrefSixteen\ published $16\times16$ designs on area--delay product at equal
+\nmed{} \emph{and} MRE -- but the placebo alone reaches \SotaShamSixteenADP\% of
+them.  We report the pair so that the share attributable to the model is visible
+rather than assumed, and offer the difference as a calibrated upper bound on
+what an off-the-shelf LLM buys here.
 \end{abstract}
 
 \begin{CCSXML}
@@ -158,6 +155,18 @@ correct by construction and the model's contribution can be measured exactly.
 
 \noindent This paper makes the following contributions.
 \begin{itemize}
+\item \emph{A control suite for attributing the gains of LLM-guided search},
+      which we did not find in the LLM-for-optimisation literature and which we
+      propose as the bar such a claim should clear: a \emph{placebo} arm that
+      walks the guided control flow with every answer discarded, the same
+      guidance channel driven instead by a written designer prior and by online
+      credit assignment, a random-forest surrogate spending the same budget, an
+      accounting in wall clock beside the one in evaluations, a measurement of
+      what an endpoint outage costs, and the sensitivity of the whole
+      comparison to the reference box.  Each is cheap to run.  Together they
+      moved the credit away from where we first put it, and they are the reason
+      this paper can say what the model does and does not buy rather than that
+      it helped.
 \item A parameterised template unifying truncation, mean-error compensation,
       heterogeneous biased compressors and an OR-based final adder, for
       unsigned and signed operands, that decodes one genome into \emph{both} a
@@ -167,17 +176,10 @@ correct by construction and the model's contribution can be measured exactly.
       column-wise view of the design and acts through four fail-closed
       operators: knowledge-based warm start, Pareto-gap candidate injection, an
       elicited proposal distribution over compressor styles that biases
-      \emph{every} mutation, and search-space refinement.
-\item The controls a claim about LLM guidance needs and that we did not find in
-      the LLM-for-optimisation literature: a \emph{placebo} arm that walks the
-      guided control flow with every answer discarded, the same
-      proposal-distribution channel driven instead by a fixed designer prior
-      and by online credit assignment, a random-forest surrogate spending the
-      same budget, a wall-clock accounting beside the evaluation-budget one, a
-      measurement of what a guidance outage costs, and the sensitivity of the
-      comparison to the reference box.  They move the credit from where we
-      first put it, and they are the reason we can say what the model does and
-      does not buy.
+      \emph{every} mutation, and search-space refinement.  The operators name a
+      knowledge \emph{interface} rather than a model: Section~\ref{sec:prior}
+      fills the same one from a designer's written rule and from the run's own
+      statistics, which is what makes the attribution possible.
 \item A fully open flow (Yosys\,+\,ABC\,+\,Nangate45, activity-based power from
       the mapped netlist) applied identically to our designs and to the
       \NlibVerified\ published RTL designs that reproduce their own RTL under
@@ -288,14 +290,14 @@ on untouched.
 runs across the top, numbered 14 down to 0 and split into an exact region, an
 approximate region of A columns and a truncated region of T columns.  Below it
 the original partial-product array is drawn as a parallelogram of dots, with
-crosses instead of dots in the truncated columns.  An arrow leads down to a band
-holding two rows of dots, the final partial products, and a second arrow leads
-to the final adder, which is divided into an exact carry-propagate part, an
-OR-based part of k bits and a dropped part.}
+crosses instead of dots in the truncated columns.  An arrow labelled compression
+leads down to a band holding two rows of dots, the final partial products, and a
+second arrow leads to the final adder, which is divided into an exact
+carry-propagate part, an OR-based part of k bits and a dropped part.}
 \caption{The Approx-LG template for $N=8$, drawn on one column axis that every
 stage shares.  The $T$ least-significant columns are never generated -- crossed
 in the array, and dropped from the adder as well -- the next $A$ columns carry
-approximate compressors, and the rest stay exact.  Reduction compresses the
+approximate compressors, and the rest stay exact.  Compression reduces the
 array to the two rows a carry-propagate adder takes; it is inside that step
 that the \SlotGenesEight\ slot genes of the genome live, one per
 (stage, column) slot of the Dadda schedule given in the text.  The $k$
@@ -898,6 +900,16 @@ answers), and disagree at the truncation boundary, where
 the rule names the library's most aggressive cell and the model a milder one.
 \PriorText
 
+Two readings of that are available and only one of them is supported.  It does
+not show that a language model cannot supply this kind of knowledge: it supplies
+it, cheaply, from a description of the template and the measured cell statistics
+and nothing else.  What it shows is that the knowledge is small enough to write
+down, and that the durable part of the design is the \emph{interface} rather
+than what fills it.  The same ranked list is accepted from a designer, from an
+estimator running on the archive, and from the model, and the search cannot tell
+which it received.  That is what makes the attribution in this section possible
+at all, and it is the part we would keep whatever the next model does.
+
 \textbf{Endpoint and model size.}  One model behind one endpoint is
 the obvious limit on how far this reads, so the elicited-prior arm was run twice
 more with nothing changed but the model: once with extended reasoning enabled,
@@ -1022,10 +1034,21 @@ only once a characterisation costs \BreakEvenNSGA\,s; against the surrogate the
 threshold is \BreakEvenRF\,s and against the sham arm \BreakEvenSham\,s.  Our
 open flow sits at \SecPerCircuitWide\,s, below every one of those and a factor
 of three below the NSGA-II one, which is why guidance loses here.  A commercial flow at minutes per
-synthesis sits two orders of magnitude above them.  The honest statement is
-therefore conditional, and the condition is measurable: \emph{guidance of this
-cost is worth buying when one characterisation costs more than about a second},
-and every number in this paper was produced in a regime where it does not.
+synthesis sits two orders of magnitude above them.
+
+We report this as a break-even rather than a defect, because it is the quantity
+a practitioner actually needs and the one the evaluation-budget literature
+leaves out.  The condition is measurable and it is this: \emph{guidance of this
+cost pays for itself once one characterisation costs more than about
+\BreakEvenNSGA\,s}.  Every number in this paper was produced below that line,
+which is why we say plainly what follows from it.  On an open academic flow at
+\SecPerCircuitWide\,s per design point we would not spend the inference budget
+on this task at all -- the written prior of Section~\ref{sec:prior} and the
+surrogate of Section~\ref{sec:surrogate} are the better buys, and neither needs
+an endpoint.  On a commercial sign-off flow at minutes per synthesis the same
+\MatchNSGA-against-$500$ evaluation saving is worth hours, and the guided loop
+is the better buy.  The threshold moves with the flow, not with the model, so a
+reader can place their own flow against it.
 
 \subsection{Robustness of the comparison}
 \label{sec:robust}
@@ -1137,11 +1160,53 @@ larger number by itself because a reader entitled to ask what the language
 model bought should be able to read the answer off the same page: most of the
 margin over published designs belongs to the template, the compensation
 constant and the iso-flow evaluation, and no comparison against published work
-can separate those from the search that used them.
+can separate those from the search that used them.  The placebo's own rate is
+the more useful of the two numbers, because it says how high the bar already is
+once the template and the flow are fixed.  We therefore put forward the
+difference between the pair, rather than the \SotaSixteenADP\%, as this paper's
+measurement of what the model adds against published work, and the pair itself
+as a calibration point: an off-the-shelf language model inside a loop of this
+shape is worth about that much on this task today.  That is the figure a later
+method should be asked to beat.
 
 
 
 \subsection{Learned structure and applications}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{figs/apps_blend}
+\Description{Eight greyscale photographs of a cameraman blended with a picture
+of the moon, arranged in four columns and two rows.  The top row is produced by
+four Approx-LG designs and the bottom row by the published design of matching
+accuracy in each column.  The images in a column look the same as each other.}
+\caption{Image blending through four iso-accuracy pairs.  Each column is one
+pair: an Approx-LG design (top, red border) above the published design of
+matching \nmed{} (bottom); accuracy decreases left to right.  Panel labels give
+the PSNR against the exact multiplier and the power--delay product, both taken
+from Table~\ref{tab:apps}; the PSNR
+averages the six standard images while one of them is shown.  The claim the
+figure makes is the energy one, and it holds in every column: the Approx-LG
+design costs 30 to 54\% less while the two images are indistinguishable.  It
+makes no claim about which side wins on PSNR, because at matched accuracy that
+is noise -- ours is ahead in three of these four blends and, counting both
+workloads for the same four pairs, in five of those eight comparisons.}
+\label{fig:appsblend}
+\end{figure}
+
+The search does not converge on a single best compressor.
+\input{tabs/styles_text}, the error-cancellation mechanism that motivates
+biased compressors~\cite{wen2025} ($\overline{ED}$ is the mean error distance
+of a style's 3:2 cell, positive when it under-estimates; one value after two
+names means the two cells share it).  Aggressive OR-style cells sit just above
+the truncation point and four or more columns higher the population reverts to
+balanced or exact cells, the structure both priors describe.
+
+Table~\ref{tab:apps} evaluates a slice of the front on three workloads: image
+blending and $5\times5$ Gaussian smoothing over six standard images, and
+LeNet-5 on MNIST with every multiplication replaced by the approximate one
+(8-bit quantisation, exact accumulation, a $256\times256$ product table from
+the synthesised model).  \AppsText
 
 \begin{table}[t]
 \caption{Application quality along the Approx-LG $8\times8$ front.  Each design
@@ -1173,41 +1238,6 @@ point, and we do not read them as improvements.}
 \end{tabular}
 \end{table}
 
-The search does not converge on a single best compressor.
-\input{tabs/styles_text}, the error-cancellation mechanism that motivates
-biased compressors~\cite{wen2025} ($\overline{ED}$ is the mean error distance
-of a style's 3:2 cell, positive when it under-estimates; one value after two
-names means the two cells share it).  Aggressive OR-style cells sit just above
-the truncation point and four or more columns higher the population reverts to
-balanced or exact cells, the structure both priors describe.
-
-Table~\ref{tab:apps} evaluates a slice of the front on three workloads: image
-blending and $5\times5$ Gaussian smoothing over six standard images, and
-LeNet-5 on MNIST with every multiplication replaced by the approximate one
-(8-bit quantisation, exact accumulation, a $256\times256$ product table from
-the synthesised model).  \AppsText
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figs/apps_blend}
-\Description{Eight greyscale photographs of a cameraman blended with a picture
-of the moon, arranged in four columns and two rows.  The top row is produced by
-four Approx-LG designs and the bottom row by the published design of matching
-accuracy in each column.  The images in a column look the same as each other.}
-\caption{Image blending through four iso-accuracy pairs.  Each column is one
-pair: an Approx-LG design (top, red border) above the published design of
-matching \nmed{} (bottom); accuracy decreases left to right.  Panel labels give
-the PSNR against the exact multiplier and the power--delay product, both taken
-from Table~\ref{tab:apps}; the PSNR
-averages the six standard images while one of them is shown.  The claim the
-figure makes is the energy one, and it holds in every column: the Approx-LG
-design costs 30 to 54\% less while the two images are indistinguishable.  It
-makes no claim about which side wins on PSNR, because at matched accuracy that
-is noise -- ours is ahead in three of these four blends and, counting both
-workloads for the same four pairs, in five of those eight comparisons.}
-\label{fig:appsblend}
-\end{figure}
-
 
 Fig.~\ref{fig:appsblend} shows what those numbers look like on the blend.
 Reading down a column rather than across a row is the point: the two designs in
@@ -1222,8 +1252,18 @@ the blend because each output pixel accumulates twenty-five products instead of
 two, which is why its PSNR column in Table~\ref{tab:apps} falls away first.
 
 \section{Conclusion}
-A language model is useful in approximate-circuit design not as an RTL writer
-but as a \emph{search operator}, and the controls say which kind.  A proposal
+The result we would most like carried forward from this paper is the method for
+getting it.  A guided search compared against an unguided one measures the
+guidance and the loop together, and on this problem the two answers differ
+enough to change what the paper claims: the placebo alone reaches
+\SotaShamSixteenADP\% of the published-design comparison the full system wins
+\SotaSixteenADP\% of, and an evaluation budget hides a wall-clock cost that
+reverses the sign.  Neither would have been visible without the controls, and
+neither is specific to multipliers.
+
+Within that frame, what the model does is now sayable.  A language model is
+useful in approximate-circuit design not as an RTL writer but as a \emph{search
+operator}, and the controls say which kind.  A proposal
 distribution over compressor styles, conditioned on the column offset, is a
 real mechanism: filled from a written rule it is the largest single-mechanism
 improvement to NSGA-II we measured -- the full guided system gains more at
@@ -1248,25 +1288,16 @@ and the fronts beat \SotaSixteenADP\% of \NrefSixteen\ published designs at
 equal \nmed{} \emph{and} MRE -- though an arm with no model in it reaches
 \SotaShamSixteenADP\% of the same library, which is where the credit for that
 number mostly belongs.
-We would urge anyone reporting LLM-guided optimisation to run the placebo and
-the fixed-prior control before concluding that the model is what helped.
-
-% ACM requires generative-AI use to be disclosed in the Work, and suggests the
-% acknowledgements for it.  Under the "anonymous" class option acmart runs
-% \excludecomment{acks}, so anything placed there would vanish from the
-% submitted PDF; the disclosure is therefore a section of its own, which
-% survives anonymisation and names no author, institution or sponsor.  It can
-% be folded into \begin{acks} for the camera-ready.
-\section*{Disclosure of Generative AI Use}
-Generative AI assistants were used in preparing this manuscript: to draft and
-revise portions of the text, and to write and maintain parts of the analysis,
-figure and table generation code released with the artefact.  The measurements
-are not theirs: every quantity reported here is produced by the simulation and
-synthesis flow of Section~\ref{sec:eval}, and the values quoted in the text are
-emitted into it by that pipeline rather than typed in by hand.  The authors have
-verified the content and take full responsibility for it.  This statement
-concerns the preparation of the paper, and is separate from the language model
-that is the object of study in Section~\ref{sec:llm}.
+Two of those sentences are recommendations rather than results, and we would
+rather state them than leave them implied.  For an open academic flow at
+\SecPerCircuitWide\,s a design point, we would not spend an inference budget on
+this task: the written prior and the surrogate are cheaper and at least as good,
+and the guided loop becomes the better buy only above the break-even of
+Section~\ref{sec:walltime}, which a commercial sign-off flow clears easily.  And
+for anyone reporting LLM-guided optimisation, we would run the placebo and the
+written-prior control before concluding that the model is what helped.  Neither
+is expensive.  In our own case they cost a few campaigns and changed the paper's
+conclusion, which is the best argument we can make for them.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{refs}

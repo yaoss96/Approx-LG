@@ -1,6 +1,6 @@
 <mxfile host="Electron">
   <diagram name="Approx-LG template" id="approxlg-template">
-    <mxGraphModel dx="975" dy="1204" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1075" pageHeight="624" math="0" shadow="0">
+    <mxGraphModel dx="2020" dy="1825" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1075" pageHeight="624" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -208,8 +208,8 @@
         <mxCell id="c68" parent="1" style="ellipse;html=1;fillColor=#222222;strokeColor=none;fillOpacity=100;" value="" vertex="1">
           <mxGeometry height="8" width="8" x="190.32" y="245" as="geometry" />
         </mxCell>
-        <mxCell id="c119" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontColor=#333333;fontStyle=1" value="final adder" vertex="1">
-          <mxGeometry height="40" width="115.85" x="174.15" y="406" as="geometry" />
+        <mxCell id="c119" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontColor=#333333;fontStyle=1" value="Final adder" vertex="1">
+          <mxGeometry height="40" width="115.85" x="168.15" y="406" as="geometry" />
         </mxCell>
         <mxCell id="c120" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=bottom;whiteSpace=wrap;fontSize=20;fontColor=#7b241c;fontStyle=1" value="&lt;i&gt;T&lt;/i&gt; truncated" vertex="1">
           <mxGeometry height="22" width="180" x="738.88" y="-98" as="geometry" />
@@ -264,9 +264,6 @@
         </mxCell>
         <mxCell id="c138" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;whiteSpace=wrap;fontSize=14;fontColor=#444444;fontStyle=1" value="14" vertex="1">
           <mxGeometry height="16" width="30" x="179.32" y="-75.00000000000006" as="geometry" />
-        </mxCell>
-        <mxCell id="c139" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=top;whiteSpace=wrap;fontSize=16;fontColor=light-dark(#180c0c, #787878);fontStyle=1" value="Col" vertex="1">
-          <mxGeometry height="16" width="60" x="113.32" y="-76.00000000000006" as="geometry" />
         </mxCell>
         <mxCell id="c140" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#7b241c;strokeWidth=1.0;arcSize=18;fontSize=14;" value="" vertex="1">
           <mxGeometry height="36" width="259.66" x="700" y="438" as="geometry" />
@@ -375,6 +372,9 @@
         </mxCell>
         <mxCell id="n2CcPzT1ORSZgX9_FZLn-73" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=top;whiteSpace=wrap;fontSize=18;fontColor=#474747;fontStyle=1" value="Final Partial Product" vertex="1">
           <mxGeometry height="30" width="210" x="714.88" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="RtnytXAECuheME-HRumv-1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=right;verticalAlign=top;whiteSpace=wrap;fontSize=18;fontColor=#474747;fontStyle=0" value="Compression" vertex="1">
+          <mxGeometry height="30" width="133.77" x="608.23" y="281" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
