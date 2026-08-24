@@ -529,7 +529,7 @@ Section~\ref{sec:walltime} charges separately.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{The guided loop}
+\subsection{Guided loop}
 \label{sec:loop}
 Algorithm~\ref{alg:approxlg} shows how the four operators plug into an
 otherwise textbook NSGA-II.  The initial population that is not warm-started
@@ -608,7 +608,7 @@ run one characterisation costs \SecPerCircuit\,s, so a \Budget-evaluation run
 spends about \TimeEDAcold\,s in the EDA flow whichever algorithm asks; guidance
 adds \TimeGuidance\,s on top of that (Section~\ref{sec:loop}).
 
-\textbf{Which runs count.}  Failed calls are refilled by the standard
+\textbf{Run inclusion.}  Failed calls are refilled by the standard
 operators, so a run whose calls all failed still completes and is still
 labelled Approx-LG, and averaging such runs into the guided arm dilutes the
 effect towards zero.  Runs with a call-failure rate above 25\% are discarded;
@@ -652,7 +652,7 @@ $\hat{A}_{12}$, the probability that a run of one arm beats a run of the other.
 An interval says more than a threshold, because it also bounds how large the
 effect could plausibly be.
 
-\textbf{What the pipeline invents from nothing.}  A significance threshold does
+\textbf{Null calibration.}  A significance threshold does
 not say whether an effect is larger than the noise this particular pipeline
 generates, so we measure that directly: one arm's runs are split into two
 disjoint halves at random and scored against each other exactly as a real
@@ -663,7 +663,7 @@ the 95th percentile is \NullEight\%.  At $16\times16$ it is \NullSixteen\%.
 Any effect inside that band is not evidence, whatever its $p$-value, and we
 say so where it applies rather than leaning on the threshold.
 
-\subsection{The primary comparison}
+\subsection{Primary comparison}
 \label{sec:primary}
 Every other arm in this section differs from the guided one in more than the
 model's content.  The endpoint fixed in Section~\ref{sec:stats} does not: the
@@ -842,7 +842,7 @@ variant & runs & hypervolume & $\Delta$ & $p$\\
 
 Table~\ref{tab:ablation} removes one operator at a time.  \AblationText
 
-\subsection{Does the guidance need a language model?}
+\subsection{Sources of the proposal distribution}
 \label{sec:prior}
 
 \begin{table}[t]
@@ -887,7 +887,7 @@ answers), and disagree at the truncation boundary, where
 the rule names the library's most aggressive cell and the model a milder one.
 \PriorText
 
-\textbf{Would a better endpoint change it?}  One model behind one endpoint is
+\textbf{Endpoint and model size.}  One model behind one endpoint is
 the obvious limit on how far this reads, so the elicited-prior arm was run twice
 more with nothing changed but the model: once with extended reasoning enabled,
 once against a larger model of the same family, \ThinkN\ seeds each, paired
@@ -911,7 +911,7 @@ touch.  The claim is therefore about the channel they were measured on: that
 channel is saturated, and it is the part of the system a designer can replace
 with a written rule.
 
-\subsection{The other way to spend a small budget}
+\subsection{Surrogate-assisted search}
 \label{sec:surrogate}
 Injecting knowledge from outside is not the standard answer to an expensive
 evaluation; learning a cheap model of it is, and a surrogate-assisted loop
@@ -969,7 +969,7 @@ different circuit.  Table~\ref{tab:search16} gives both templates arm by arm,
 including the sham arm that Section~\ref{sec:primary} pairs against.
 \SixteenText
 
-\subsection{The budget the paper counts, and the one a user pays}
+\subsection{Evaluation budget and wall clock}
 \label{sec:walltime}
 Counting EDA evaluations is the right currency only when an evaluation
 dominates the run.  On this flow it does not.  Measured on the $16\times16$
@@ -1028,7 +1028,7 @@ scoring & NSGA-II & Approx-LG & $\Delta$ & wins & $p$\\
 
 \RobustText
 
-\subsection{What a guidance outage costs}
+\subsection{Guidance outages}
 \label{sec:failclosed}
 \FailClosedText
 
