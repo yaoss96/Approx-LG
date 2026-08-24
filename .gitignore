@@ -49,3 +49,8 @@ paper/main_ieee_conference.tex
 
 # Camera-ready author block, kept out of the anonymised mirror.
 paper/authors_cameraready.tex
+
+# draw.io desktop writes these beside the file it is editing.
+.$*.bkp
+*.drawio.bkp
+*.drawio.dtmp
