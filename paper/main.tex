@@ -49,44 +49,28 @@ Approximate-Multiplier Design}
 \renewcommand{\shortauthors}{Anonymous}
 
 \begin{abstract}
-Approximate multipliers trade accuracy for area, delay and energy, but the
-search is discrete and expensive: every candidate must be simulated for error
-and synthesised for power, performance and area.  We present
-\textbf{Approx-LG}, which couples NSGA-II with a large language model (LLM)
-reasoning about the circuit in symbolic, designer-level terms through a guidance
-interface that any knowledge source can fill.  The LLM never emits RTL, and every design point is characterised by
-bit-accurate simulation and a full Yosys/ABC mapping onto a 45\,nm library,
-verified bit-exactly against both.
-
-Gains reported for a model inside such a loop are almost never separated from
-the loop that carries them, and the separation changes the answer.  Our first
-contribution is the suite that performs it, which we propose as the bar such a
-claim should clear: a \emph{placebo} arm walking the guided control flow with
-every answer discarded, the same interface driven instead by a written designer
-prior and by online credit assignment, a random-forest surrogate on the same
-budget, an accounting in wall clock beside the one in evaluations, and the cost
-of an endpoint outage.
-
-What they return is a calibrated answer rather than a headline.  Against the
-placebo the model's content is worth \ShamSixteenU\% and \ShamSixteenS\% of
-hypervolume at $16\times16$ ($p\ShamSixteenSHolm$ corrected,
-$\hat{A}_{12}=\ShamSixteenUA$) and \ShamEight\% at $8\times8$, inside the noise
-the pipeline produces from nothing and therefore not claimed.  At no width is
-the elicited proposal distribution a better source than a designer's written
-rule through the same interface; a surrogate recovers about half the gain
-without inference; and neither extended reasoning (\Think\%), a larger model
-(\Pro\%), nor that larger model behind the whole system (\ProFull\%) moves it.
-In wall clock the guided arm \emph{loses} by \EqTimeNSGA\%, which locates a
-break-even, not a defect: below about \BreakEvenNSGA\,s per characterisation the
-written prior or the surrogate is the better buy, and above it -- where a
-commercial sign-off flow sits -- the guided loop.
-
-The template is strong regardless, its fronts beating \SotaSixteenADP\% of
-\NrefSixteen\ published $16\times16$ designs on area--delay product at equal
-\nmed{} \emph{and} MRE -- but the placebo alone reaches \SotaShamSixteenADP\% of
-them.  We report the pair so that the share attributable to the model is visible
-rather than assumed, and offer the difference as a calibrated upper bound on
-what an off-the-shelf LLM buys here.
+Approximate-multiplier design trades accuracy for area, delay and energy, and
+every candidate must be simulated for error and synthesised for cost.  We
+present \textbf{Approx-LG}, which couples NSGA-II with a large language model
+(LLM) through a guidance interface that any knowledge source can fill; the LLM
+never emits RTL, and every design point is verified bit-exactly against RTL and
+netlist.  Gains reported for a model inside such a loop are rarely separated
+from the loop itself; our first contribution is the suite that separates them: a
+\emph{placebo} arm running the guided flow with every answer discarded, the same
+interface driven by a written designer prior and by online credit assignment, a
+surrogate on the same budget, wall clock beside evaluations, and the cost of an
+endpoint outage.  Against the placebo the model's content is worth
+\ShamSixteenU\% and \ShamSixteenS\% of hypervolume at $16\times16$
+($p\ShamSixteenSHolm$ corrected, $\hat{A}_{12}=\ShamSixteenUA$) and \ShamEight\%
+at $8\times8$, inside the pipeline's own noise and therefore not claimed.  At no
+width does the elicited proposal distribution beat a designer's written rule on
+the same interface; a surrogate recovers half the gain without inference; and
+neither extended reasoning nor a larger model moves it, even behind the whole
+system.  In wall clock the guided arm \emph{loses} by \EqTimeNSGA\%, locating a
+break-even at \BreakEvenNSGA\,s per characterisation.  Its fronts beat
+\SotaSixteenADP\% of \NrefSixteen\ published designs at equal \nmed{}
+\emph{and} MRE; the placebo alone reaches \SotaShamSixteenADP\%, and that
+difference is what the model adds.
 \end{abstract}
 
 \begin{CCSXML}
