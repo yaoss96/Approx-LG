@@ -54,3 +54,6 @@ paper/authors_cameraready.tex
 .$*.bkp
 *.drawio.bkp
 *.drawio.dtmp
+
+# Submission packages are build artefacts; scripts/make_submission.py makes them.
+paper/submission/
