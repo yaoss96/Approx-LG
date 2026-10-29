@@ -34,7 +34,8 @@ def main():
         t = read(s)
         files.update(re.findall(r"\\tabinput\{([^}]+)\}", t))
         files.update(f + ".tex" for f in re.findall(r"\\input\{(tabs/[^}]+)\}", t))
-        files.update(f if f.endswith(".pdf") else f + ".pdf"
+        files.update(f if os.path.splitext(f)[1] in (".pdf", ".png", ".jpg")
+                     else f + ".pdf"
                      for f in re.findall(r"\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}", t))
         if "\\input{pending}" in t:
             problems.append(f"{s} still inputs pending.tex")
