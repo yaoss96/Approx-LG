@@ -131,22 +131,39 @@ def evals_to(run, target, budget):
 
 # ---------------------------------------------------------------------------
 def search_table(runs):
-    """One row per arm, one column group per width: HV mean (sd) and runs."""
+    """One row per arm, one column per width: HV mean (CV, %) [runs].
+
+    Arms are grouped by the widths they were run at, and the widths a group
+    was not run at are one labelled cell rather than a column of dashes.  The
+    hybrid arms, run at one width only, are reported in Table summary."""
     cols = ["8", "16u", "16s", "32u"]
+
+    def cell(a, w):
+        r = runs[w].get(a)
+        if not r:
+            return "--"
+        hv = np.array([x["hv"] for x in r.values()])
+        return f"{hv.mean():.4f} ({100 * hv.std() / hv.mean():.1f}) [{len(hv)}]"
+
+    groups = [
+        (["nsga2", "smsemoa", "approxlg_sham", "approxlg"], 4, None),
+        (["random", "mobo", "nsga2_rf", "nsga2_expert", "nsga2_llmprior"], 3,
+         "not run"),
+        (["ga", "eamva", "biased_ga", "llm_only"], 1,
+         r"run at $8\times8$ only"),
+    ]
     lines = []
-    for a in TABLE_ORDER:
-        cells = []
-        present = False
-        for w in cols:
-            r = runs[w].get(a)
-            if not r:
-                cells.append("--")
-                continue
-            present = True
-            hv = np.array([x["hv"] for x in r.values()])
-            cells.append(f"{hv.mean():.4f} ({100 * hv.std() / hv.mean():.1f}) "
-                         f"[{len(hv)}]")
-        if present:
+    for arms, k, note in groups:
+        arms = [a for a in arms if a in runs["8"]]
+        if lines and arms:
+            lines.append(r"\addlinespace[3pt]")
+        for i, a in enumerate(arms):
+            cells = [cell(a, w) for w in cols[:k]]
+            if note is not None:
+                span = len(cols) - k
+                txt = rf"\multirow{{{len(arms)}}}{{*}}{{{note}}}" if i == 0 else ""
+                cells.append(txt if span == 1 else
+                             rf"\multicolumn{{{span}}}{{c}}{{{txt}}}")
             lines.append(f"{LABEL[a]} & " + " & ".join(cells) + r" \\")
     with open(os.path.join(TABS, "search_all.tex"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
