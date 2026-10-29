@@ -197,7 +197,9 @@ APPROXLG_STYLES=ext python scripts/run_apps_mre.py --cnn --epochs 4
 python scripts/analyze_tcad.py
 python scripts/make_tcad_figs.py
 python scripts/make_prompts_tex.py
-# Fig. 1 is drawn by hand in paper/tcad/template.drawio (draw.io desktop)
+# the scripts above write their macros, tables and figures into paper/tcad/;
+# the manuscript sources themselves are not part of this repository.  With
+# them in place (Fig. 1 is drawn by hand in paper/tcad/template.drawio):
 draw.io --export --format pdf --crop --output paper/tcad/figs/template.pdf paper/tcad/template.drawio
 cd paper/tcad && pdflatex main && bibtex main && pdflatex main && pdflatex main
 ```
