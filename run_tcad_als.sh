@@ -15,8 +15,8 @@ for n in 8 16; do
     cap=$([ $n = 8 ] && echo 28800 || echo 36000)
     wsl.exe -e bash -lc "cd ~/ALSRAC && mkdir -p runs/n$n/nmed_$b && \
       timeout $cap ./main -i runs/exact$n.blif -m NMED -b $b -f 64 \
-        -o runs/n$n/nmed_$b/ > runs/n$n/nmed_$b.log 2>&1; \
-      echo \"\$(date) n=$n bound=$b exit \$?\" >> runs/done.txt" &
+        -o runs/n$n/nmed_$b/ > runs/n$n/nmed_$b.log 2>&1; rc=\$?; \
+      echo \"\$(date) n=$n bound=$b exit \$rc (124: stopped at the cap)\" >> runs/done.txt" &
   done
 done
 wait
