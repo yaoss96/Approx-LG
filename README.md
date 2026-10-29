@@ -153,6 +153,64 @@ campaign regenerates whichever of them it needs.
   8- and 16-bit runs, so re-run `scripts/run_libs.py` for a width before
   verifying that width.
 
+## TCAD version (`paper/tcad/`)
+
+The journal version adds reproduced compressor-tree baselines, stronger
+same-space optimisers, a 32x32 width, an error-metric retargeting experiment
+and several analyses.  New modules:
+
+```
+approxlg/ctree.py   compressor-tree multipliers of the reference methods
+                    (Esposito et al. TCAS-I'18 cells and allocation rule,
+                    Wang et al. ISCAS'20 strategy, generic stage builder)
+approxlg/opact.py   OPACT (DATE'22): allocation ILP in its three modes and the
+                    connection-order objective (SCIP; Gurobi optional)
+approxlg/moo.py     SMS-EMOA and batch MOBO (GP + Monte-Carlo EHVI)
+```
+
+`approxlg.engine.set_error_metric("MRE")` (or `run_search.py --error-metric
+MRE`) retargets the objective vector, the decade elites and the prompts from
+NMED to MRE; NMED behaviour is byte-identical to the earlier campaigns.
+
+```bash
+source env.sh
+# reference designs, characterised in the same flow, and their check
+# against the published error figures
+python scripts/run_refgen.py --n 8
+python scripts/run_refgen.py --n 16 --gpu --nvec 4194304 --extra-stages 3
+python scripts/analyze_repro.py
+# campaigns as run for the revision
+bash run_tcad_abl16.sh      # operator ablation at 16x16
+bash run_tcad_moo.sh        # SMS-EMOA and MOBO at 8x8 and 16x16 u/s
+bash run_tcad_mre.sh        # MRE-objective retargeting at 8x8
+bash run_tcad_mrex.sh       # the same with the carry-free cells as style E
+bash run_tcad_n32.sh        # 32x32 unsigned
+bash run_tcad_hyb.sh        # placebo of the guidance-on-SMS-EMOA hybrid
+bash run_tcad_resume_llm.sh # guided arms after an endpoint outage: waits
+                            # for scripts/api_ok.py, re-runs missing seeds
+# serial timing (on an otherwise idle machine), analyses, figures, prompts;
+# analyze_tcad.py reads the outputs of the four scripts before it
+python scripts/time_serial.py --widths 8 16 32
+python scripts/analyze_mechanisms.py
+python scripts/analyze_glitch.py
+APPROXLG_STYLES=ext python scripts/run_apps_mre.py --cnn --epochs 4
+python scripts/analyze_tcad.py
+python scripts/make_tcad_figs.py
+python scripts/make_prompts_tex.py
+# Fig. 1 is drawn by hand in paper/tcad/template.drawio (draw.io desktop)
+draw.io --export --format pdf --crop --output paper/tcad/figs/template.pdf paper/tcad/template.drawio
+cd paper/tcad && pdflatex main && bibtex main && pdflatex main && pdflatex main
+```
+
+The OPACT ILP and connection-order model are solved with SCIP through
+`pyscipopt`; `opact.allocate(..., solver="gurobi")` is the hook for a licensed
+Gurobi.  The 32x32 template simulates 64-bit products in unsigned 64-bit
+arithmetic (`simulate.Stimulus.wide`), checked against Icarus Verilog.
+
+On Windows, keep the repository on a path without non-ASCII characters (or
+reach it through a directory junction): Yosys cannot locate its share
+directory otherwise.
+
 ## Licence
 
 MIT, see [LICENSE](LICENSE).  The reference libraries, the Nangate45 cell

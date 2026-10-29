@@ -29,6 +29,18 @@ from .synth import PPA, Synthesizer
 OBJECTIVES = ("log10(NMED)", "area", "delay")
 NMED_FLOOR = 1e-7
 
+# The error objective.  Every campaign of the paper minimises NMED; the
+# retargeting experiment re-runs the search with MRE in its place, which is
+# the one switch the objective vector, the decade elites and the prompts read.
+ERROR_METRIC = "NMED"
+
+
+def set_error_metric(name: str) -> None:
+    global ERROR_METRIC
+    if name not in ("NMED", "MRE"):
+        raise ValueError(name)
+    ERROR_METRIC = name
+
 
 class BudgetExhausted(Exception):
     pass
@@ -59,8 +71,14 @@ class Record:
         whole accurate region into a few percent of the objective range and
         distort both the crowding distance and the hypervolume.  Dominance is
         unaffected because log is strictly monotone."""
-        return np.array([math.log10(max(self.NMED, NMED_FLOOR)),
+        return np.array([math.log10(max(getattr(self, ERROR_METRIC),
+                                        NMED_FLOOR)),
                          self.area, self.delay], dtype=float)
+
+    @property
+    def err(self) -> float:
+        """The error metric the search minimises (NMED unless retargeted)."""
+        return getattr(self, ERROR_METRIC)
 
     def to_json(self) -> Dict:
         d = {k: (float(v) if isinstance(v, (int, float, np.floating)) else v)
@@ -107,14 +125,25 @@ class Engine:
             self.builder.build(g).to_verilog().encode()).hexdigest()
 
     def _load(self, path):
+        bad = 0
         with open(path) as fh:
             for line in fh:
                 line = line.strip()
                 if not line:
                     continue
-                d = json.loads(line)
+                try:
+                    d = json.loads(line)
+                except json.JSONDecodeError:
+                    # a fragment left by two processes appending at once (on
+                    # Windows, append mode is not atomic across handles); it
+                    # is no record, and the circuit is simply characterized
+                    # again if a run asks for it
+                    bad += 1
+                    continue
                 g = np.array(d.pop("g"), dtype=np.int32)
                 self.cache[self.key(g)] = Record(g=g, **d)
+        if bad:
+            print(f"   {path}: skipped {bad} unparseable line(s)")
 
     def _append(self, rec: Record):
         if not self.cache_file:
@@ -213,5 +242,5 @@ def pareto_of(records: Sequence[Record]) -> List[Record]:
 
 
 def archive_dicts(records: Sequence[Record]) -> List[Dict]:
-    return [{"g": r.g, "NMED": r.NMED, "area": r.area, "delay": r.delay}
-            for r in records]
+    return [{"g": r.g, "NMED": r.NMED, "err": r.err, "area": r.area,
+             "delay": r.delay} for r in records]

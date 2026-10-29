@@ -27,9 +27,15 @@ from typing import Dict, List, Optional, Sequence
 import numpy as np
 import requests
 
+from . import engine as _engine
 from .arch import Space
 from .cells import (SLOT_MODES, SLOT_MODE_BY_NAME, N_SLOT_MODES,
                     cell_statistics, CELL_BY_NAME, bias_symbol)
+
+
+def _metric() -> str:
+    """Name of the error objective (NMED unless the search is retargeted)."""
+    return _engine.ERROR_METRIC
 
 API_URL = os.environ.get("DEEPSEEK_URL", "https://api.deepseek.com/chat/completions")
 DEFAULT_MODEL = os.environ.get("APPROXLG_LLM", "deepseek-v4-flash")
@@ -215,6 +221,15 @@ Design guidance that usually holds:
     directly above T; near the MSB they destroy the worst-case error.
   * cpa_k trades a large delay reduction for a modest error increase, because
     it breaks the carry chain of the final adder.
+""" + (_MRE_NOTE if _metric() == "MRE" else "")
+
+
+_MRE_NOTE = """
+The error objective of this search is the mean RELATIVE error (MRE), averaged
+over all operand pairs with a non-zero exact product.  MRE is dominated by
+small products, so truncation, the OR-based adder bits and aggressive cells in
+the low columns cost far more MRE than they cost NMED; reaching a low MRE
+usually needs T near 0 and approximation confined to a few columns.
 """
 
 
@@ -320,7 +335,7 @@ def format_archive(sp: Space, archive: List[dict], limit: int = 14) -> str:
     rows = []
     for r in sel:
         spec = genome_to_spec(sp, r["g"])
-        spec["NMED"] = float(f"{r['NMED']:.3e}")
+        spec[_metric()] = float(f"{r.get('err', r['NMED']):.3e}")
         spec["area"] = round(r["area"], 1)
         spec["delay"] = round(r["delay"], 3)
         rows.append("  " + json.dumps(spec))
@@ -331,20 +346,27 @@ ANSWER_FMT = ('{"designs": [{"T": int, "A": int, "comp": int, "cpa_k": int, '
               '"columns": {"<col>": "<style>"}}, ...]}')
 
 DECADES = [(1e-6, 1e-5), (1e-5, 1e-4), (1e-4, 1e-3), (1e-3, 1e-2)]
+MRE_DECADES = [(1e-5, 1e-4), (1e-4, 1e-3), (1e-3, 1e-2), (1e-2, 1e-1)]
+
+
+def decades() -> List[tuple]:
+    """The four useful error decades of the active error metric."""
+    return MRE_DECADES if _metric() == "MRE" else DECADES
 
 
 def coverage_note(archive: List[dict]) -> str:
     """Tell the model where the front is thin, in circuit-designer terms."""
     lines, gaps = [], []
-    for lo, hi in DECADES:
-        sel = [r for r in archive if lo <= r["NMED"] < hi]
+    met = _metric()
+    for lo, hi in decades():
+        sel = [r for r in archive if lo <= r.get("err", r["NMED"]) < hi]
         if sel:
             best = min(sel, key=lambda r: r["area"] * r["delay"])
-            lines.append(f"  NMED in [{lo:.0e},{hi:.0e}): {len(sel):2d} design(s), "
+            lines.append(f"  {met} in [{lo:.0e},{hi:.0e}): {len(sel):2d} design(s), "
                          f"best area*delay = {best['area']*best['delay']:.1f} "
                          f"(area {best['area']:.1f}, delay {best['delay']:.3f})")
         else:
-            lines.append(f"  NMED in [{lo:.0e},{hi:.0e}): EMPTY")
+            lines.append(f"  {met} in [{lo:.0e},{hi:.0e}): EMPTY")
             gaps.append(f"[{lo:.0e},{hi:.0e})")
     txt = "Coverage of the current front:\n" + "\n".join(lines)
     if gaps:
@@ -371,7 +393,7 @@ def propose_candidates(llm: LLM, sp: Space, archive: List[dict], k: int,
                        history_note: str = "") -> List[np.ndarray]:
     user = (space_doc(sp).replace("{modes}", slot_mode_doc()) +
             f"""
-Current non-dominated archive (all three objectives are minimised: NMED, area \
+Current non-dominated archive (all three objectives are minimised: {_metric()}, area \
 in um^2, critical-path delay in ns):
 {format_archive(sp, archive)}
 
@@ -389,6 +411,11 @@ Return JSON: {ANSWER_FMT} with exactly {k} entries.""")
     return out
 
 
+def _warm_targets() -> List[str]:
+    return (["1e-4", "1e-3", "1e-2", "5e-2"] if _metric() == "MRE"
+            else ["1e-5", "1e-4", "1e-3", "1e-2"])
+
+
 def warm_start(llm: LLM, sp: Space, k: int) -> List[np.ndarray]:
     """Generation-0 population proposed from circuit knowledge alone."""
     user = (space_doc(sp).replace("{modes}", slot_mode_doc()) +
@@ -397,8 +424,8 @@ No design has been characterised yet.
 
 Task: propose {k} starting designs that already look like good approximate \
 multipliers, covering the whole useful accuracy range: roughly one quarter with \
-NMED near 1e-5, one quarter near 1e-4, one quarter near 1e-3 and one quarter \
-near 1e-2.  Use truncation, compensation, the LOA final adder and heterogeneous \
+{_metric()} near {_warm_targets()[0]}, one quarter near {_warm_targets()[1]}, one quarter near {_warm_targets()[2]} and one quarter \
+near {_warm_targets()[3]}.  Use truncation, compensation, the LOA final adder and heterogeneous \
 biased compressors together rather than one mechanism alone.
 Return JSON: {ANSWER_FMT} with exactly {k} entries.""")
     out = _decode(sp, parse_json(llm.chat(SYSTEM, user, max_tokens=6000)), k)

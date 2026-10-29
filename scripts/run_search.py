@@ -34,6 +34,16 @@ ALL["nsga2_rf"] = run_nsga2_rf
 ALL["eamva"] = baselines.run_eamva
 ALL["biased_ga"] = baselines.run_biased_ga
 
+# stronger same-space optimisers (TCAD revision)
+from approxlg.moo import run_mobo, run_smsemoa              # noqa: E402
+
+ALL["smsemoa"] = run_smsemoa
+ALL["mobo"] = run_mobo
+# the guidance on top of SMS-EMOA's selection, and its own placebo
+ALL["approxlg_sms"] = lambda *a, **k: search.run_approxlg(
+    *a, **{**k, "survivor": "sms"})
+ALL["approxlg_sms_sham"] = ALL["approxlg_sms"]
+
 # ablations
 ALL["approxlg_no_inject"] = lambda *a, **k: search.run_approxlg(
     *a, **{**k, "use_inject": False})
@@ -62,10 +72,11 @@ NEEDS_LLM = {"llm_only", "approxlg", "approxlg_no_inject",
              "approxlg_no_mutguide", "approxlg_no_refine",
              "approxlg_no_warm", "approxlg_prior_only",
              "approxlg_inject_only", "approxlg_no_prior",
-             "nsga2_llmprior", "approxlg_sham"}
+             "nsga2_llmprior", "approxlg_sham", "approxlg_sms",
+             "approxlg_sms_sham"}
 
 # Arms that walk the guidance code path but must never receive an answer.
-SHAM_ALGOS = {"approxlg_sham"}
+SHAM_ALGOS = {"approxlg_sham", "approxlg_sms_sham"}
 
 # A run whose guidance calls nearly all failed is a run of the *unguided*
 # algorithm wearing the guided algorithm's label, and averaging it into the
@@ -107,7 +118,13 @@ def main():
                     help="enable extended thinking, to test whether the "
                          "paper's negative results survive a stronger "
                          "configuration of the same endpoint")
+    ap.add_argument("--error-metric", choices=["NMED", "MRE"], default="NMED",
+                    help="the error objective; MRE is the retargeting "
+                         "experiment, with --nmed-floor/--nmed-ref then "
+                         "bounding the MRE axis of the scoring box")
     args = ap.parse_args()
+    from approxlg import engine as _engine
+    _engine.set_error_metric(args.error_metric)
 
     os.makedirs(RESULTS, exist_ok=True)
     tag = args.tag or f"n{args.n}"
@@ -207,6 +224,7 @@ def main():
             hv = tracker.hv()
             rec = {
                 "algo": algo, "seed": s, "budget": args.budget,
+                "error_metric": args.error_metric,
                 "n_eval": eng.n_eval, "n_points": len(tracker.records),
                 "hv": hv, "seconds": dt,
                 "hv_trace": tracker.trace,

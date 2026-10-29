@@ -50,6 +50,14 @@ paper/main_ieee_conference.tex
 # Camera-ready author block, kept out of the anonymised mirror.
 paper/authors_cameraready.tex
 
+# Separate title page uploaded to Manuscript Central.  It carries the author
+# names, affiliations and the corresponding author's phone number, and §4.1
+# points reviewers at an anonymous mirror of this repository, so committing it
+# would deanonymise the submission.  (paper/*.aux, *.log and *.out are already
+# ignored above; the .pdf is not, hence the explicit line.)
+paper/title_page.tex
+paper/title_page.pdf
+
 # draw.io desktop writes these beside the file it is editing.
 .$*.bkp
 *.drawio.bkp
@@ -57,3 +65,25 @@ paper/authors_cameraready.tex
 
 # Submission packages are build artefacts; scripts/make_submission.py makes them.
 paper/submission/
+
+# --- TCAD revision ----------------------------------------------------------
+# Per-design netlists and simulation dumps of the glitch analysis, rebuilt by
+# scripts/analyze_glitch.py:
+results/glitch_work/
+# Backups kept beside a repaired cache (see results/repairs.txt):
+results/*.bak_*
+# Smoke test of the multi-objective drivers, not a campaign:
+results/search_n8mootest.jsonl
+# Gurobi writes its log into the working directory:
+gurobi.log
+# Manuscript build artefacts and the submission bundle
+# (scripts/package_tcad.py makes it):
+paper/tcad/*.aux
+paper/tcad/*.bbl
+paper/tcad/*.blg
+paper/tcad/*.log
+paper/tcad/*.out
+paper/tcad/*.synctex.gz
+paper/tcad/main.pdf
+paper/tcad/supplement.pdf
+paper/tcad/dist/

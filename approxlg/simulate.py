@@ -15,7 +15,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 
-from .arch import Builder, Netlist, Space
+from .arch import CELL_PINS, Builder, Netlist, Space
 
 try:                                                       # pragma: no cover
     import cupy as _cp
@@ -57,9 +57,18 @@ class Stimulus:
         return self.b - ((self.b >> (self.n - 1)) << self.n)
 
     @property
+    def wide(self) -> bool:
+        """An unsigned product of more than 62 bits overflows int64; such
+        widths (32x32) are simulated in uint64 instead."""
+        return (not self.signed) and 2 * self.n > 62
+
+    @property
     def exact(self):
         if self.signed:
             return self.sa * self.sb
+        if self.wide:
+            u = self.xp.uint64
+            return self.a.astype(u) * self.b.astype(u)
         return self.a.astype(np.int64) * self.b.astype(np.int64)
 
 
@@ -132,7 +141,7 @@ def simulate(nl: Netlist, stim: Stimulus):
                 acc = acc | env[w]
             env[st.outs[0]] = acc
         else:
-            local = {nm: env[w] for nm, w in zip("abcd", st.ins)}
+            local = {nm: env[w] for nm, w in zip(CELL_PINS, st.ins)}
             for o, (_, expr) in zip(st.outs, st.cell.outs):
                 env[o] = eval(expr, _EVAL_GLOBALS, local)  # noqa: S307
 
@@ -144,6 +153,9 @@ def simulate(nl: Netlist, stim: Stimulus):
     def bit(row, j):
         w = row.get(j)
         return zero if w is None else _unpack(env[w], stim.nvec, xp)
+
+    if stim.wide:
+        return _assemble_wide(nl, stim, bit, lo, hi_w, m)
 
     prod = xp.zeros(stim.nvec, dtype=xp.int64)
     # OR-based (LOA) part
@@ -162,13 +174,68 @@ def simulate(nl: Netlist, stim: Stimulus):
     return prod & ((1 << m) - 1)
 
 
+def _assemble_wide(nl: Netlist, stim: Stimulus, bit, lo: int, hi_w: int,
+                   m: int):
+    """The final adder of :func:`simulate` in uint64, for 64-bit products.
+
+    Arithmetic modulo 2^64 is exactly the RTL's, so the carry out of the top
+    bit is dropped by the type rather than by a mask."""
+    xp = stim.xp
+    u = xp.uint64
+    prod = xp.zeros(stim.nvec, dtype=u)
+    for j in range(nl.trunc, lo):
+        prod += (bit(nl.row_a, j) | bit(nl.row_b, j)).astype(u) << u(j)
+    hi = xp.zeros(stim.nvec, dtype=u)
+    for j in range(lo, m):
+        hi += bit(nl.row_a, j).astype(u) << u(j - lo)
+        hi += bit(nl.row_b, j).astype(u) << u(j - lo)
+    if nl.cpa_k > 0:
+        hi += (bit(nl.row_a, lo - 1) & bit(nl.row_b, lo - 1)).astype(u)
+    hi += u((nl.const_add >> lo) if lo else nl.const_add)
+    if hi_w < 64:
+        hi &= u((1 << hi_w) - 1)
+    prod += hi << u(lo)
+    return prod
+
+
 # --------------------------------------------------------------------------
 # Error metrics
 # --------------------------------------------------------------------------
+def _error_metrics_wide(approx, stim: Stimulus) -> Dict[str, float]:
+    """uint64 counterpart of :func:`error_metrics` for 64-bit products; the
+    absolute error is formed before any conversion to float."""
+    xp = stim.xp
+    n = stim.n
+    exact = stim.exact
+    approx = approx.astype(xp.uint64)
+    maxp = float((2 ** n - 1) ** 2)
+    ge = approx >= exact
+    aerr = xp.where(ge, approx - exact, exact - approx).astype(xp.float64)
+    sgn = xp.where(ge, 1.0, -1.0)
+    ef = exact.astype(xp.float64)
+    nz = exact != 0
+    med = float(aerr.mean())
+    res = {
+        "MED": med,
+        "NMED": med / maxp,
+        "WCE": float(aerr.max()),
+        "NWCE": float(aerr.max()) / maxp,
+        "ER": float((approx != exact).mean()),
+        "MRE": float((aerr[nz] / ef[nz]).mean()),
+        "MSE": float((aerr ** 2).mean()),
+        "MED_signed": float((sgn * aerr).mean()),
+    }
+    res["RMSE"] = res["MSE"] ** 0.5
+    res["NRMSE"] = res["RMSE"] / maxp
+    return res
+
+
 def error_metrics(approx, stim: Stimulus) -> Dict[str, float]:
     xp = stim.xp
     n = stim.n
     m = 2 * n
+    if stim.wide:
+        return _error_metrics_wide(approx, stim)
     exact = stim.exact
     approx = approx.astype(xp.int64)
     if stim.signed:                       # interpret the product as two's compl.

@@ -30,6 +30,11 @@ import numpy as np
 
 from .cells import CELL_BY_NAME, SLOT_MODES, SLOT_MODE_BY_NAME, N_SLOT_MODES, Cell
 
+# Pin names of a cell, in input order.  The template's own cells use at most
+# four; the six-input approximate compressors of the reference designs
+# (approxlg.ctree) need the last two.
+CELL_PINS = "abcdef"
+
 
 # --------------------------------------------------------------------------
 # Netlist
@@ -75,7 +80,7 @@ class Netlist:
                 wires.append(st.outs[0])
                 lines.append(f"  assign {st.outs[0]} = " + " | ".join(st.ins) + ";")
             else:
-                env = {nm: iw for nm, iw in zip("abcd", st.ins)}
+                env = {nm: iw for nm, iw in zip(CELL_PINS, st.ins)}
                 for o, (w, expr) in zip(st.outs, st.cell.outs):
                     wires.append(o)
                     e = _subst(expr, env)

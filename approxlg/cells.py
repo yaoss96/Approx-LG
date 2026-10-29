@@ -23,6 +23,7 @@ two exact full adders, exactly as in a Dadda/Wallace tree.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Sequence, Tuple
 
@@ -158,6 +159,23 @@ SLOT_MODES: List[SlotMode] = [
     SlotMode("K9",     "FA_N2",  "HA_A1", "C42_10"),
     SlotMode("OR",     "FA_OR",  "HA_A4", "C42_OR"),
 ]
+
+# Opt-in extension (APPROXLG_STYLES=ext): the carry-free compressors of
+# Esposito et al., whose outputs all keep the weight of their inputs, as a
+# 22nd style.  It is appended so that every genome of the paper's campaigns
+# decodes unchanged, and it is off by default because a larger alphabet
+# changes the random stream of every sampler and mutation; only the campaign
+# that studies it sets the variable.
+if os.environ.get("APPROXLG_STYLES", "").lower() == "ext":
+    ESP_EXT = [
+        _mk("E21", "HA", 2, [(1, "a|b")], note="Esposito 2/1"),
+        _mk("E32", "FA", 3, [(1, "(a&b)|c"), (1, "a|b")], note="Esposito 3/2"),
+        _mk("E42", "C42", 4, [(1, "(a&b)|c|d"), (1, "(c&d)|a|b")],
+            note="Esposito 4/2"),
+    ]
+    ALL_CELLS = ALL_CELLS + ESP_EXT
+    CELL_BY_NAME.update({c.name: c for c in ESP_EXT})
+    SLOT_MODES.append(SlotMode("E", "E32", "E21", "E42"))
 N_SLOT_MODES = len(SLOT_MODES)
 SLOT_MODE_BY_NAME = {m.name: i for i, m in enumerate(SLOT_MODES)}
 

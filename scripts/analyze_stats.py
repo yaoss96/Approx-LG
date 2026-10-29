@@ -29,7 +29,6 @@ not defensible.
 from __future__ import annotations
 
 import argparse
-import itertools
 import json
 import hashlib
 import os
@@ -63,9 +62,11 @@ def load(tags):
 def wilcoxon_exact(a, b):
     """Two-sided Wilcoxon signed-rank test.
 
-    Exact for n <= 24 by enumerating the 2^n sign assignments of the ranks;
-    normal approximation with a continuity correction above that.  Ties in
-    |d| get average ranks, zero differences are dropped.
+    Exact for n <= 24: the 2^n sign assignments of the ranks are counted by
+    their rank sum (a subset-sum recursion over doubled, hence integer, ranks,
+    which gives the same counts as enumerating them one by one); normal
+    approximation without continuity correction above that.  Ties in |d| get
+    average ranks, zero differences are dropped.
     """
     d = np.asarray(a, float) - np.asarray(b, float)
     d = d[d != 0]
@@ -83,16 +84,18 @@ def wilcoxon_exact(a, b):
     wp = ranks[d > 0].sum()
     wins = int((d > 0).sum())
     if n <= 24:
-        total = 0
-        hits = 0
-        stat = min(wp, ranks.sum() - wp)
-        for signs in itertools.product((0, 1), repeat=n):
-            s = np.array(signs, float)
-            w = (ranks * s).sum()
-            total += 1
-            if min(w, ranks.sum() - w) <= stat + 1e-12:
-                hits += 1
-        return hits / total, wins, n
+        r2 = np.rint(2 * ranks).astype(np.int64)     # average ranks are k/2
+        tot = int(r2.sum())
+        counts = np.zeros(tot + 1)                    # exact below 2^53
+        counts[0] = 1.0
+        for r in r2:
+            nxt = counts.copy()
+            nxt[r:] += counts[:tot + 1 - r]
+            counts = nxt
+        stat = int(round(2 * min(wp, ranks.sum() - wp)))
+        w = np.arange(tot + 1)
+        hits = counts[np.minimum(w, tot - w) <= stat].sum()
+        return float(hits / counts.sum()), wins, n
     mu = n * (n + 1) / 4
     sd = np.sqrt(n * (n + 1) * (2 * n + 1) / 24)
     from math import erfc, sqrt

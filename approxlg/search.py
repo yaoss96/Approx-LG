@@ -31,7 +31,7 @@ import numpy as np
 from .arch import Space
 from .cells import N_SLOT_MODES
 from .engine import Engine, Record, archive_dicts, pareto_of
-from .llm import (LLM, DECADES, ModePrior, Restriction, elicit_prior,
+from .llm import (LLM, DECADES, ModePrior, Restriction, decades, elicit_prior,
                   guide_mutation, llm_only_batch, propose_candidates,
                   refine_space, warm_start)
 from .metrics import crowding_distance, fast_nondominated_sort, hypervolume
@@ -166,8 +166,8 @@ def decade_elites(records: List[Record], k: int) -> List[Record]:
     falls in that decade.  These are the points an LLM can most usefully try to
     dominate."""
     out: List[Record] = []
-    for lo, hi in DECADES:
-        sel = [r for r in records if lo <= r.NMED < hi]
+    for lo, hi in decades():
+        sel = [r for r in records if lo <= r.err < hi]
         if sel:
             out.append(min(sel, key=lambda r: r.area * r.delay))
         if len(out) >= k:
@@ -357,8 +357,21 @@ def run_approxlg(eng: Engine, sp: Space, budget: int, seed: int, tracker: Tracke
                  use_prior: bool = True,
                  inject_every: int = 2,
                  n_inject: int = 6, n_mutguide: int = 6, refine_every: int = 5,
-                 prior_every: int = 3, warm_frac: float = 0.5, **kw) -> Dict:
+                 prior_every: int = 3, warm_frac: float = 0.5,
+                 survivor: str = "nsga2", **kw) -> Dict:
+    """The guided loop.  ``survivor`` picks the environmental selection the
+    operators sit on: NSGA-II's rank-and-crowding (the paper's default) or
+    SMS-EMOA's hypervolume-contribution reduction, which is how the guidance
+    is tested on top of the stronger unguided optimizer."""
     rng = np.random.default_rng(seed)
+    if survivor == "sms":
+        from .moo import _norm, _sms_reduce
+
+        def select(pool, n):
+            pool = list({r.g.tobytes(): r for r in pool}.values())
+            return _sms_reduce(pool, _norm(tracker, pool), n, np.ones(3))
+    else:
+        select = environmental_selection
     restr: Optional[Restriction] = None
     accepted_keys: set = set()
     proposed = 0
@@ -426,7 +439,7 @@ def run_approxlg(eng: Engine, sp: Space, budget: int, seed: int, tracker: Tracke
         Q = eval_batch(eng, sp, kids, budget, rng, tracker, pop)
         if not Q or eng.n_eval == before:
             break
-        P = environmental_selection(P + Q, pop)
+        P = select(P + Q, pop)
 
         # LLM children that ever survived environmental selection
         accepted_keys |= (llm_keys & {r.g.tobytes() for r in P})
