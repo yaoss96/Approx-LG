@@ -262,11 +262,16 @@ def families(runs):
         fam["ablation"].append(("full system, re-run two months later",
                                 "16u", "approxlg_drift", "approxlg", r))
         # the variants against the earlier runs, for the text only
+        aug = []
         for v in ABLATIONS:
             if v in hv16 and len(set(hv16[v]) & set(hvo)) >= 5:
                 ra = paired({"x": hv16[v], "y": hvo}, "x", "y")
                 mac(f"AblAug{v.split('approxlg_')[1].title().replace('_', '')}",
                     f"{ra['delta']:+.2f}")
+                aug.append(ra["delta"])
+        if aug:
+            mac("AblAugMin", f"{min(aug):+.2f}")
+            mac("AblAugMax", f"{max(aug):+.2f}")
     # retargeting
     for y in ("approxlg_sham", "nsga2", "smsemoa"):
         add("retarget", "8mre", "approxlg", y)
@@ -396,6 +401,16 @@ def iso(front, ref, key, metrics):
     return min(cand, key=key) if cand else None
 
 
+def load_als(n, window=True):
+    """Circuits of the ALS baseline (scripts/run_als.py), each netlist once."""
+    p = os.path.join(RESULTS, f"als_n{n}.jsonl")
+    if not os.path.exists(p):
+        return []
+    recs = [json.loads(l) for l in open(p) if l.strip()]
+    return [r for r in recs if r.get("ok") and not r.get("dup")
+            and r.get("area") and (not window or 1e-6 <= r["NMED"] <= 0.02)]
+
+
 def ref_compare(runs):
     out = {}
     lines = []
@@ -409,6 +424,10 @@ def ref_compare(runs):
                 and 1e-6 <= r["NMED"] <= 0.02]
         if not refs:
             continue
+        # ALS is scored by the same rules but kept out of "all", which is the
+        # reproduced compressor-tree families
+        als = load_als(n)
+        libs = ("OPACT", "Esposito", "Wang", "all") + (("ALSRAC",) if als else ())
         arms = [("approxlg", w), ("approxlg_sham", w), ("nsga2", w),
                 ("smsemoa", w)]
         if n == 8:
@@ -423,8 +442,9 @@ def ref_compare(runs):
                 continue
             res = {}
             for metrics, tagm in ((("NMED",), "n"), (("NMED", "MRE"), "nm")):
-                for lib in ("OPACT", "Esposito", "Wang", "all"):
-                    sub = [r for r in refs if lib == "all" or r["lib"] == lib]
+                for lib in libs:
+                    sub = als if lib == "ALSRAC" else \
+                        [r for r in refs if lib == "all" or r["lib"] == lib]
                     wa = wp = 0
                     ga = []
                     for r in sub:
@@ -456,6 +476,65 @@ def ref_compare(runs):
     with open(os.path.join(TABS, "refcmp.tex"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
     return out
+
+
+def als_macros(runs):
+    """The ALS baseline: how many designs, how far ALSRAC got within its time
+    cap, and the hypervolume of its designs in the box of ref_hv -- of all of
+    them and of its widest-bound run alone, against the best single run of
+    the search arms at the width."""
+    from approxlg.metrics import hypervolume
+    for n, w, wn, exactf in ((8, "8", "Eight", "exact_n8.json"),
+                             (16, "16u", "Sixteen", "exact_n16u.json")):
+        allr = load_als(n, window=False)
+        if not allr:
+            continue
+        ex = json.load(open(os.path.join(RESULTS, exactf)))
+        lo = np.array([math.log10(1e-6), 0, 0])
+        hi = np.array([math.log10(0.02), ex["area"], ex["delay"]])
+
+        def hv(pts):
+            F = np.array([[math.log10(max(r["NMED"], 1e-7)), r["area"],
+                           r["delay"]] for r in pts])
+            return hypervolume((F - lo) / (hi - lo), np.ones(3))
+        mac(f"AlsHV{wn}", f"{hv(allr):.4f}")
+        # the run to the widest bound, counting the circuits it shares with
+        # the other run (recorded there as duplicates)
+        raw = [json.loads(l) for l in open(os.path.join(RESULTS, f"als_n{n}.jsonl"))
+               if l.strip()]
+        byh = {r["hash"]: r for r in allr}
+        wide = max(r["bound"] for r in raw)
+        one = [byh[r["hash"]] for r in raw
+               if r.get("ok") and r["bound"] == wide and r.get("hash") in byh]
+        if one:
+            mac(f"AlsHVRun{wn}", f"{hv(one):.4f}")
+        best = max((v for a in hv_by(runs, w).values() for v in a.values()),
+                   default=None)
+        if best is not None:
+            mac(f"BestRunHV{wn}", f"{best:.4f}")
+        # ALSRAC's sampled error estimate against our measurement
+        est = [abs(r["NMED"] / r["als_err"] - 1) for r in allr
+               if r.get("als_err") and r["NMED"] > 0]
+        if est:
+            mac(f"AlsEstDiff{wn}", f"{100 * np.median(est):.0f}")
+        sp = os.path.join(RESULTS, f"als_runs_n{n}.json")
+        if os.path.exists(sp):
+            st = json.load(open(sp))
+            mac(f"AlsWritten{wn}", f"{sum(s['written'] for s in st.values())}")
+            for tag, b in zip(("Lo", "Hi"), sorted(st, key=float)):
+                mac(f"AlsRounds{wn}{tag}", f"{st[b]['rounds']}")
+                mac(f"AlsCpuMin{wn}{tag}", f"{st[b]['cpu_s'] / 60:.0f}")
+                mac(f"AlsCpuH{wn}{tag}", f"{st[b]['cpu_s'] / 3600:.1f}")
+        mac(f"AlsN{wn}", f"{len(allr)}")
+        mac(f"AlsNWin{wn}", f"{len(load_als(n))}")
+        top = max(r["NMED"] for r in allr)
+        e = math.floor(math.log10(top)) if top > 0 else 0
+        mac(f"AlsMaxNmed{wn}",
+            f"{top / 10 ** e:.1f}\\times10^{{{e}}}" if top > 0 else "0")
+        mac(f"AlsExactArea{wn}", f"{min(r['area'] for r in allr if r['NMED'] == 0):.0f}"
+            if any(r["NMED"] == 0 for r in allr) else "--")
+        print(f"als n={n}: {len(allr)} designs, {len(load_als(n))} in the window, "
+              f"NMED up to {top:.2e}")
 
 
 def ref_hv(runs):
@@ -855,10 +934,13 @@ def main():
 
     rc = ref_compare(runs)
     rh = ref_hv(runs)
+    als_macros(runs)
     wname = {8: "Eight", 16: "Sixteen", 32: "ThirtyTwo"}
     for (n, algo, ww), res in rc.items():
         for tagm in ("n", "nm"):
-            for lib in ("OPACT", "Esposito", "Wang", "all"):
+            for lib in ("OPACT", "Esposito", "Wang", "all", "ALSRAC"):
+                if (tagm, lib) not in res:
+                    continue
                 wa, wp, tot, med = res[(tagm, lib)]
                 key = (f"Ref{wname[n]}"
                        f"{ {'8mre': 'Mre', '8mrex': 'MreX'}.get(ww, '')}"

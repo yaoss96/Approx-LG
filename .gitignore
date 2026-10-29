@@ -76,6 +76,8 @@ results/*.bak_*
 results/search_n8mootest.jsonl
 # Gurobi writes its log into the working directory:
 gurobi.log
+# Converted netlists of the ALS baseline, rebuilt by scripts/run_als.py:
+results/als_work/
 # Manuscript build artefacts and the submission bundle
 # (scripts/package_tcad.py makes it):
 paper/tcad/*.aux

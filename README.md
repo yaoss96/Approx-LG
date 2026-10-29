@@ -209,6 +209,30 @@ The OPACT ILP and connection-order model are solved with SCIP through
 Gurobi.  The 32x32 template simulates 64-bit products in unsigned 64-bit
 arithmetic (`simulate.Stimulus.wide`), checked against Icarus Verilog.
 
+**ALS baseline.**  ALSRAC (Meng et al., ICCAD'20) is run from its public code,
+built in WSL (Ubuntu 24.04, GCC 13).  The sources predate GCC 13 and the
+current Boost, hence the two extra flags; `scripts/alsrac_compat.h` only
+includes standard headers.
+
+```bash
+sudo apt-get install -y build-essential libreadline-dev libncurses-dev libboost-dev universal-ctags
+git clone https://github.com/SJTU-ECTL/ALSRAC.git ~/ALSRAC && cd ~/ALSRAC
+git clone https://github.com/changmg/abc.git && (cd abc && make -j16 libabc.a)
+git clone https://github.com/changmg/espresso.git && (cd espresso && make lib)
+make -j16 FLAG="-DBOOST_TIMER_ENABLE_DEPRECATED -include <repo>/scripts/alsrac_compat.h"
+```
+
+Then, from the repository (`run_als.py` expects the WSL home at `D:/eda/home`;
+`--alsrac` points it elsewhere):
+
+```bash
+python scripts/run_als.py --prep --n 8      # the template's exact multiplier as BLIF
+python scripts/run_als.py --prep --n 16
+bash run_tcad_als.sh                        # ALSRAC under NMED bounds 2e-4 and 2e-2
+python scripts/run_als.py --n 8             # every circuit it wrote, in our flow
+python scripts/run_als.py --n 16 --gpu
+```
+
 On Windows, keep the repository on a path without non-ASCII characters (or
 reach it through a directory junction): Yosys cannot locate its share
 directory otherwise.
