@@ -26,6 +26,7 @@ import glob
 import hashlib
 import json
 import os
+import re
 import sys
 from collections import defaultdict
 
@@ -45,9 +46,23 @@ def tag_of(path: str) -> str:
     return os.path.basename(path).split("designs_")[1].rsplit(".jsonl", 1)[0]
 
 
+def space_of(tag: str, g) -> Space:
+    """The space a record was drawn from: the width from the genome length,
+    the signedness from the tag (n16s, n16smoo, n16sfill, ...)."""
+    signed = re.match(r"n\d+s", tag) is not None
+    for n in (8, 16, 32):
+        sp = Space(n, signed=signed)
+        if sp.length == len(g):
+            return sp
+    raise SystemExit(f"no space of length {len(g)} for {tag}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true")
+    ap.add_argument("--only", nargs="+", default=None,
+                    help="purge only these tags, e.g. while campaigns on "
+                         "the other tags are still appending to their files")
     args = ap.parse_args()
 
     files = sorted(glob.glob(os.path.join(RESULTS, "designs_*.jsonl")))
@@ -56,8 +71,11 @@ def main():
     for p in files:
         rows = []
         for line in open(p):
-            if line.strip():
+            try:
                 rows.append(json.loads(line))
+            except json.JSONDecodeError:
+                # blank, or a fragment left by a process stopped mid-append
+                continue
         recs[p] = rows
         tag = tag_of(p)
         for d in rows:
@@ -117,6 +135,9 @@ def main():
         return
 
     for p, ds in purge.items():
+        if args.only and tag_of(p) not in args.only:
+            print(f"left {len(ds)} in {os.path.basename(p)} (not in --only)")
+            continue
         drop = {id(d) for d in ds}
         keep = [d for d in recs[p] if id(d) not in drop]
         with open(p, "w") as fh:
@@ -132,8 +153,7 @@ def main():
         n_before = len(cache)
         for d in ds:
             g = np.array(d["g"], dtype=np.int32)
-            sp = Space(16 if len(g) > 100 else 8,
-                       signed=tag_of(p).endswith("s"))
+            sp = space_of(tag_of(p), g)
             v = Builder(sp).build(sp.canonical(g)).to_verilog()
             h = hashlib.sha1((v + "mul").encode()).hexdigest()[:16]
             cache.pop(h, None)

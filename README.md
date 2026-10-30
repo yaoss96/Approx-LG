@@ -188,6 +188,12 @@ bash run_tcad_n32.sh        # 32x32 unsigned
 bash run_tcad_hyb.sh        # placebo of the guidance-on-SMS-EMOA hybrid
 bash run_tcad_resume_llm.sh # guided arms after an endpoint outage: waits
                             # for scripts/api_ok.py, re-runs missing seeds
+bash run_tcad_fill.sh       # every arm of the search table at every width
+bash run_tcad_fill32.sh     # its 32x32 tail in parallel chains
+# characterisation checks: impossible areas (dry run unless --apply) and
+# the synthesis failures by cause
+python scripts/purge_bad_ppa.py
+python scripts/audit_synth_failures.py
 # serial timing (on an otherwise idle machine), analyses, figures, prompts;
 # analyze_tcad.py reads the outputs of the four scripts before it
 python scripts/time_serial.py --widths 8 16 32

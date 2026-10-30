@@ -131,7 +131,17 @@ def approximation_upper_bound(eng: Engine, sp: Space, em_req: float,
                               ) -> int:
     """Algorithm 1 of Wen et al.: grow the approximate window column by column
     with the *lowest-error* approximate style until the error metric exceeds
-    the expected value; the last feasible column is the upper bound."""
+    the expected value; the last feasible column is the upper bound.
+
+    The bound needs only the error of each probe, so a probe that is not
+    already characterised is simulated rather than synthesised, and charged to
+    the budget as a characterisation would be.  At 32x32 these near-exact
+    probes are the one kind of circuit ABC cannot map in the flow's time limit
+    (the third does not finish in 10 minutes, while BC-GA's own designs take
+    seconds), and a failed probe would end the search for the bound.  At 8
+    and 16 bits every probe synthesises, so the bound and the run are those
+    of a synthesised probe."""
+    from .simulate import error_metrics, simulate
     best_mode = SLOT_MODE_BY_NAME["N1"]        # exact sum, under-estimating carry
     m = 0
     for i in range(1, sp.ncol):
@@ -140,10 +150,19 @@ def approximation_upper_bound(eng: Engine, sp: Space, em_req: float,
         sl = g[sp.n_head:].reshape(sp.nstage, sp.ncol)
         sl[:, :i] = best_mode
         g[sp.n_head:] = sl.reshape(-1)
-        r = eng.evaluate([g], budget=budget, used=eng.n_eval)
-        if not r:
-            break
-        if getattr(r[0], metric) < em_req:
+        k = eng.key(g)
+        if k not in eng.run_seen:
+            if eng.n_eval >= budget:
+                break
+            eng.run_seen.add(k)
+            eng.n_eval += 1
+        r = eng.cache.get(k)
+        if r is not None:
+            err = getattr(r, metric)
+        else:
+            nl = eng.builder.build(sp.canonical(g))
+            err = error_metrics(simulate(nl, eng.ev.stim), eng.ev.stim)[metric]
+        if err < em_req:
             m = i
         else:
             break

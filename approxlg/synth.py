@@ -89,6 +89,46 @@ _ABC_SHELL = ("+strash;ifraig;scorr;dc2;dretime;strash;dch,-f;{m};"
               "topo;buffer,-c;upsize,-c;dnsize,-c;stime,-p")
 
 
+def _private_tmp(d: str) -> Dict[str, str]:
+    """Environment for one Yosys run, with its temporary directory inside the
+    run's own work directory.
+
+    Each ABC call of Yosys writes its input and output netlists to a fresh
+    directory under TMP.  Once in the campaigns ABC read a torn input netlist
+    ("Constant-0 drivers added to 14 non-driven nets") and the synthesis
+    reported a fraction of the real area as a success: a 32x32 design of 155
+    cells came back as 100.8 um^2 and 0.16 ns, against 1525 um^2 and 0.89 ns
+    when synthesised again.  The tear did not reproduce, and a directory shared
+    by two concurrent syntheses is the one way we see for it, so every run
+    gets a private TMP, which rules that out and leaves the flow unchanged;
+    ``_synthesize`` also refuses any log that carries the warning."""
+    return dict(os.environ, TMP=d, TEMP=d)
+
+
+def _run_limited(cmd, timeout: float, env=None) -> subprocess.CompletedProcess:
+    """``subprocess.run(cmd, capture_output=True, text=True, timeout=...)``
+    that also stops the children of ``cmd`` at the limit.
+
+    On Windows ``subprocess.run`` kills only Yosys at the limit and then waits
+    for the pipes to close, which the ABC process Yosys started keeps open
+    until it finishes on its own: a circuit ABC needs half an hour for held
+    its search that long although the attempt had already failed.  Killing the
+    process tree makes the limit the limit; what fails and what succeeds is
+    unchanged."""
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         text=True, env=env)
+    try:
+        out, err = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        if os.name == "nt":
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(p.pid)],
+                           capture_output=True)
+        p.kill()
+        p.communicate()
+        raise
+    return subprocess.CompletedProcess(cmd, p.returncode, out, err)
+
+
 def abc_script(recipe: str = "default") -> str:
     """The mapping recipe.
 
@@ -217,8 +257,8 @@ stat -liberty {self.lib}
 write_json {js}
 write_verilog -noattr -noexpr -nohex -nodec {out}
 """)
-        subprocess.run([self.yosys, "-q", "-l", os.path.join(d, "yosys.log"), ys],
-                       capture_output=True, text=True, timeout=1800)
+        _run_limited([self.yosys, "-q", "-l", os.path.join(d, "yosys.log"), ys],
+                     timeout=1800, env=_private_tmp(d))
         logf = os.path.join(d, "yosys.log")
         log = open(logf).read() if os.path.exists(logf) else ""
         ppa = self._parse_log(log)
@@ -247,14 +287,20 @@ write_verilog -noattr -noexpr -nohex -nodec {out}
             fh.write(YS_TEMPLATE.format(src=src, top=top, lib=self.lib,
                                         out=out, js=js, abc=abc_script(self.recipe)))
         try:
-            r = subprocess.run([self.yosys, "-q", "-l",
-                                os.path.join(d, "yosys.log"), ys],
-                               capture_output=True, text=True, timeout=600)
+            r = _run_limited([self.yosys, "-q", "-l",
+                              os.path.join(d, "yosys.log"), ys],
+                             timeout=600, env=_private_tmp(d))
         except Exception:                                     # pragma: no cover
             return PPA(ok=False)
         log = open(os.path.join(d, "yosys.log")).read() if \
             os.path.exists(os.path.join(d, "yosys.log")) else (r.stdout + r.stderr)
         ppa = self._parse_log(log)
+        # ABC mapped a torn input netlist (see _private_tmp): a failure, to be
+        # retried, whatever area and delay the rest of the log reports.  In
+        # 242k synthesis logs of the campaigns the warning occurs exactly once,
+        # on the one corrupted characterisation, so no sound design trips it.
+        if "non-driven nets" in log:
+            ppa.ok = False
         if ppa.ok and self.sta and os.path.exists(out):
             st = self._run_sta(d, out, top, ppa)
             if st:

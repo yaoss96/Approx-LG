@@ -37,9 +37,11 @@ from analyze_stats import holm, paired                       # noqa: E402
 # width key -> campaign tags holding its runs
 WIDTHS = {
     "8": ["n8", "n8L", "n8abl", "n8p", "n8moo"],
-    "16u": ["n16u", "n16umoo", "n16uabl", "n16uhyb"],
-    "16s": ["n16s", "n16smoo"],
-    "32u": ["n32u"],
+    "16u": ["n16u", "n16umoo", "n16uabl", "n16uhyb", "n16ufill"],
+    "16s": ["n16s", "n16smoo", "n16sfill"],
+    "32u": ["n32u", "n32ufill", "n32ufill_e2", "n32ufill_e3", "n32ufill_e4",
+            "n32ufill_e5", "n32ufill_e67", "n32ufill_e8", "n32ufill_e9",
+            "n32ufill_bc04", "n32ufill_bc59", "n32ufill_lo", "n32ufill_ga8"],
     "8mre": ["n8mre"],
     "8mrex": ["n8mrex"],
     # the full system re-run on the 16x16 ablation's seeds two months later
@@ -145,16 +147,18 @@ def search_table(runs):
         hv = np.array([x["hv"] for x in r.values()])
         return f"{hv.mean():.4f} ({100 * hv.std() / hv.mean():.1f}) [{len(hv)}]"
 
-    groups = [
-        (["nsga2", "smsemoa", "approxlg_sham", "approxlg"], 4, None),
-        (["random", "mobo", "nsga2_rf", "nsga2_expert", "nsga2_llmprior"], 3,
-         "not run"),
-        (["ga", "eamva", "biased_ga", "llm_only"], 1,
-         r"run at $8\times8$ only"),
-    ]
+    groups = [["nsga2", "smsemoa", "approxlg_sham", "approxlg"],
+              ["random", "mobo", "nsga2_rf", "nsga2_expert", "nsga2_llmprior"],
+              ["ga", "eamva", "biased_ga", "llm_only"]]
     lines = []
-    for arms, k, note in groups:
+    for arms in groups:
         arms = [a for a in arms if a in runs["8"]]
+        # the widths every arm of the group was run at, from the left
+        k = 0
+        while k < len(cols) and all(a in runs[cols[k]] for a in arms):
+            k += 1
+        note = (None if k == len(cols) else
+                r"run at $8\times8$ only" if k == 1 else "not run")
         if lines and arms:
             lines.append(r"\addlinespace[3pt]")
         for i, a in enumerate(arms):
@@ -189,6 +193,46 @@ def search_table(runs):
         dev = max(abs(np.mean([x["hv"] for x in runs["8"][a].values()])
                       / ref - 1) for a in loops)
         mac("SpreadLoopsEight", f"{100 * dev:.1f}")
+    # the same at the wider widths: signed mean difference of each arm to
+    # NSGA-II (unpaired, %), and the range of each weak arm's gap over the
+    # widths above 8x8, once it was run at all of them
+    wtag = {"16u": "SixteenU", "16s": "SixteenS", "32u": "ThirtyTwo"}
+    short = {"random": "Rand", "ga": "Ga", "llm_only": "LlmOnly",
+             "eamva": "Eamva", "biased_ga": "Bcga", "nsga2_rf": "Rf",
+             "mobo": "Bo", "smsemoa": "Sms"}
+    weak = ("random", "ga", "llm_only", "eamva", "biased_ga")
+    gaps = defaultdict(list)
+    for w, t in wtag.items():
+        ref_w = np.mean([x["hv"] for x in runs[w]["nsga2"].values()])
+        for a, k in short.items():
+            if a in runs[w]:
+                d = 100 * (np.mean([x["hv"] for x in runs[w][a].values()])
+                           / ref_w - 1)
+                mac(f"MeanVNsga{k}{t}", f"{d:+.1f}")
+                if a in weak:
+                    gaps[a].append(-d)
+    if "ga" in runs["8"]:
+        m = np.mean([x["hv"] for x in runs["8"]["ga"].values()])
+        mac("GapGaEight", f"{100 * (1 - m / ref):.0f}")
+    for a in weak:
+        if len(gaps[a]) == len(wtag):
+            mac(f"Gap{short[a]}Wide",
+                f"{min(gaps[a]):.0f}--{max(gaps[a]):.0f}")
+    # the full-space ones together (random search, GA and LLM-only)
+    full = [g for a in ("random", "ga", "llm_only") for g in gaps[a]]
+    if len(full) == 3 * len(wtag):
+        mac("GapWeakWideMin", f"{min(full):.0f}")
+        mac("GapWeakWideMax", f"{max(full):.0f}")
+    # the arm with the largest seed-to-seed spread (CV) among the full-space
+    # arms, per width, so the text can say whether it is the LLM-only one
+    table = [a for g in groups for a in g if a not in ("eamva", "biased_ga")]
+    for w in cols:
+        cv = {a: np.std([x["hv"] for x in runs[w][a].values()]) /
+              np.mean([x["hv"] for x in runs[w][a].values()])
+              for a in table if a in runs[w]}
+        if cv:
+            top = max(cv, key=cv.get)
+            print(f"largest CV {w:4s} {LABEL.get(top, top)} {100 * cv[top]:.1f}%")
 
 
 def cost_table(runs):
@@ -254,7 +298,7 @@ def families(runs):
     for x in ("nsga2_expert", "nsga2_adaptive", "nsga2_llmprior"):
         add("priors", "8", x, "nsga2")
     add("priors", "8", "nsga2_llmprior", "nsga2_expert")
-    for w in ("16u", "16s"):
+    for w in ("16u", "16s", "32u"):
         add("priors", w, "nsga2_expert", "nsga2")
         add("priors", w, "nsga2_llmprior", "nsga2")
         add("priors", w, "approxlg", "nsga2_expert")
@@ -452,6 +496,7 @@ def ref_compare(runs):
                      ("smsemoa", "8mre"), ("approxlg", "8mrex"),
                      ("nsga2", "8mrex"), ("smsemoa", "8mrex")]
         seeds = 20
+        tabmin = []
         for algo, ww in arms:
             fr = pooled_front(runs, ww, algo,
                               seeds if not ww.startswith("8mre") else 12)
@@ -485,11 +530,47 @@ def ref_compare(runs):
             for tagm in ("n", "nm"):
                 wa, wp, tot, med = res[(tagm, "all")]
                 cells.append(f"{wa}/{tot} & {wp}/{tot} & ${med:+.0f}$")
+                # the fewest any other arm of the table beats, either rule
+                # and product: "the other arms beat at least ... of them"
+                if ww == w and algo != "approxlg":
+                    tabmin.append(min(wa, wp))
             if lines and group != last_group:
                 lines.append(r"\addlinespace[2pt]")
             lines.append(f"{group if group != last_group else ''} & {lab} & " +
                          " & ".join(cells) + r" \\")
             last_group = group
+        # every arm of the search table, for the text: the fewest reproduced
+        # designs any arm but BC-GA beats in both products under each rule,
+        # and BC-GA's own count (its designs keep every partial product)
+        if n in (16, 32):
+            wn = {16: "Sixteen", 32: "ThirtyTwo"}[n]
+            if tabmin:
+                mac(f"RefTab{wn}Min", f"{min(tabmin)}")
+            low = {"n": [], "nm": []}
+            for algo in ("random", "ga", "nsga2", "smsemoa", "mobo",
+                         "nsga2_rf", "nsga2_expert", "nsga2_llmprior",
+                         "approxlg_sham", "approxlg", "eamva", "llm_only",
+                         "biased_ga"):
+                fr = pooled_front(runs, w, algo, seeds)
+                if not fr:
+                    continue
+                for metrics, tagm in ((("NMED",), "n"), (("NMED", "MRE"), "nm")):
+                    wa = wp = 0
+                    for r in refs:
+                        a = iso(fr, r, lambda d: d["ADP"], metrics)
+                        p = iso(fr, r, lambda d: d["PDP"], metrics)
+                        wa += a is not None and a["ADP"] < r["ADP"]
+                        wp += p is not None and p["PDP"] < r["PDP"]
+                    if algo == "biased_ga":
+                        mac(f"RefBcga{wn}{tagm.upper()}", f"{max(wa, wp)}")
+                    else:
+                        low[tagm].append((min(wa, wp), algo))
+            for tagm, v in low.items():
+                if v:
+                    k, a = min(v)
+                    mac(f"RefArms{wn}{tagm.upper()}Min", f"{k}")
+                    print(f"refs n={n} {tagm:2s}: fewest beaten by any arm but "
+                          f"BC-GA {k}/{len(refs)} ({LABEL[a]})")
     with open(os.path.join(TABS, "refcmp.tex"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
     return out
@@ -792,6 +873,10 @@ def charcount_macros():
         c = json.load(open(p))
         mac("NcharDistinct", f"{c['total']:,}".replace(",", "\\,"))
         mac("NcharRecords", f"{c['records']:,}".replace(",", "\\,"))
+    # the second plausible-but-wrong characterisation (a torn ABC netlist in
+    # n32ufill GA seed 8, see approxlg/synth.py): as cached, and re-synthesised
+    mac("NcharTornArea", "100.8\\,$\\mu$m$^2$ at 165\\,ps")
+    mac("NcharTornGood", "1525.0\\,$\\mu$m$^2$ at 889\\,ps")
 
 
 def mech_macros():
