@@ -9,6 +9,7 @@ their sources.
     python scripts/package_tcad.py
 """
 import datetime
+import json
 import os
 import re
 import sys
@@ -43,6 +44,16 @@ def main():
             if "newcommand{\\pend}" not in t[max(0, m.start() - 20):m.start() + 6]:
                 problems.append(f"{s} still uses \\pend")
                 break
+    # the figure legends print citation numbers (make_tcad_figs.py), which
+    # must still be those of the built paper
+    cp = os.path.join(PAPER, "figs", "cites.json")
+    if os.path.exists(cp):
+        num = dict(re.findall(r"\\bibcite\{([^}]+)\}\{(\d+)\}", read("main.aux")))
+        stale = sorted(k for k, n in json.load(open(cp)).items()
+                       if num.get(k) != str(n))
+        if stale:
+            problems.append(f"figure legends cite old numbers for {stale}; "
+                            "rerun make_tcad_figs.py")
     missing = [f for f in sorted(files) if not os.path.exists(os.path.join(PAPER, f))]
     if missing:
         problems.append(f"missing files: {missing}")

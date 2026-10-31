@@ -51,9 +51,12 @@ WIDTHS = {
 WLABEL = {"8": r"$8\times8$", "16u": r"$16\times16$ u", "16s": r"$16\times16$ s",
           "32u": r"$32\times32$ u", "8mre": r"$8\times8$ (MRE)",
           "8mrex": r"$8\times8$ (MRE, +E)"}
+# an arm taken from the literature carries its citation in every table
 LABEL = {
-    "random": "Random", "ga": "GA", "nsga2": "NSGA-II", "smsemoa": "SMS-EMOA",
-    "mobo": "BO (GP-EHVI)", "nsga2_rf": "NSGA-II + RF surrogate",
+    "random": "Random", "ga": "GA", "nsga2": r"NSGA-II~\cite{deb2002}",
+    "smsemoa": r"SMS-EMOA~\cite{smsemoa}",
+    "mobo": r"BO (GP-EHVI)~\cite{amg,qnehvi}",
+    "nsga2_rf": r"NSGA-II + RF surrogate~\cite{jin2019}",
     "eamva": r"EA-MVA~\cite{devi2025}", "biased_ga": r"BC-GA~\cite{wen2025}",
     "llm_only": "LLM-only", "nsga2_expert": "NSGA-II + written prior",
     "nsga2_adaptive": "NSGA-II + UCB prior",
@@ -134,7 +137,8 @@ def evals_to(run, target, budget):
 
 # ---------------------------------------------------------------------------
 def search_table(runs):
-    """One row per arm, one column per width: HV mean (CV, %) [runs].
+    """One row per arm, one column per width: HV mean (CV %, runs), with no
+    brackets, which the table keeps for citations.
 
     Arms are grouped by the widths they were run at, and the widths a group
     was not run at are one labelled cell rather than a column of dashes."""
@@ -145,7 +149,7 @@ def search_table(runs):
         if not r:
             return "--"
         hv = np.array([x["hv"] for x in r.values()])
-        return f"{hv.mean():.4f} ({100 * hv.std() / hv.mean():.1f}) [{len(hv)}]"
+        return f"{hv.mean():.4f} ({100 * hv.std() / hv.mean():.1f}, {len(hv)})"
 
     groups = [["nsga2", "smsemoa", "approxlg_sham", "approxlg",
                "approxlg_sms_sham", "approxlg_sms"],
@@ -809,7 +813,8 @@ def wallclock(runs, fam):
         adj = holm([r["p"] for *_, r in fam["wallclock"]])
         for (lab, w, x, y, r), pa in zip(fam["wallclock"], adj):
             r["p_holm"] = float(pa)
-    # table: one row per width and unguided arm
+    # table: one row per width and unguided arm, short names in a narrow column
+    short = {"approxlg_sham": "sham", "mobo": r"BO~\cite{amg,qnehvi}"}
     rows, last = [], None
     for w, x, G, k, reach, nk, cstar, cs, cp, wmax, eq in lines:
         cell_w = WLABEL[w] if w != last else ""
@@ -817,7 +822,7 @@ def wallclock(runs, fam):
         last = w
         rows.append(
             f"{cell_w} & {cell_g} & "
-            f"{ {'approxlg_sham': 'sham'}.get(x, LABEL[x])} & {k:.0f} & "
+            f"{short.get(x, LABEL[x])} & {k:.0f} & "
             f"{reach}/{nk} & "
             + ("$\\infty$" if cstar == float("inf") else f"{cstar:.2f}")
             + " & " + ("0" if cstar == float("inf") else
@@ -1041,7 +1046,8 @@ def apps_mre_macros():
     short = {"Approx-LG (MRE objective, +E)": "Approx-LG, MRE obj., +E",
              "Approx-LG (MRE objective)": "Approx-LG, MRE obj.",
              "Approx-LG (NMED objective)": "Approx-LG, NMED obj.",
-             "OPACT": "OPACT"}
+             # the supplement cites through the paper's aux (xr prefix M-)
+             "OPACT": r"OPACT~\cite{M-opact}"}
     lines, last = [], None
     for r in rows:
         t = r["target"]

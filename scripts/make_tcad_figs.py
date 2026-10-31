@@ -5,12 +5,16 @@
                     the search front beside every reference design
     mre8.pdf        the 8x8 MRE/PDP plane: compressor-tree references, the
                     NMED-objective front and the MRE-retargeted front
+    cites.json      the citation numbers the legends print
+
+Run after building the paper, since the legends read main.aux.
 """
 from __future__ import annotations
 
 import json
 import math
 import os
+import re
 import sys
 from collections import defaultdict
 
@@ -45,6 +49,35 @@ TAGS = {"8": ["n8", "n8L", "n8abl", "n8moo", "n8hyb", "n8hyb2"],
 TITLE = {"8": r"$8\times8$", "16u": r"$16\times16$ (unsigned)",
          "32u": r"$32\times32$ (unsigned)"}
 BUDGET = {"8": 400, "16u": 500, "32u": 500}
+
+# a legend cites a baseline or a reference library as the tables do, with the
+# numbers of the built paper (main.aux); package_tcad.py checks figs/cites.json
+# against the paper before packaging
+AUX = os.path.join(ROOT, "paper", "tcad", "main.aux")
+CITE = {"nsga2": "deb2002", "smsemoa": "smsemoa", "mobo": "amg,qnehvi",
+        "nsga2_rf": "jin2019", "OPACT": "opact", "Esposito": "esposito2018",
+        "Wang": "wang2020", "AM-Lib": "amlib", "MulApprox": "mulapprox",
+        "EvoApproxLib": "evoapproxlib"}
+USED = {}
+
+
+def cited(lab, name):
+    """lab followed by what \\cite prints for the keys of name ("[3], [4]",
+    "[5]-[7]"), or lab alone for an arm of this paper."""
+    if name not in CITE:
+        return lab
+    num = dict(re.findall(r"\\bibcite\{([^}]+)\}\{(\d+)\}", open(AUX).read()))
+    keys = CITE[name].split(",")
+    USED.update((k, int(num[k])) for k in keys)
+    runs = []
+    for x in sorted(int(num[k]) for k in keys):
+        if runs and x == runs[-1][-1] + 1:
+            runs[-1].append(x)
+        else:
+            runs.append([x])
+    return lab + " " + ", ".join(
+        f"[{r[0]}]\u2013[{r[-1]}]" if len(r) > 2 else
+        ", ".join(f"[{x}]" for x in r) for r in runs)
 
 
 def load(tags):
@@ -86,7 +119,8 @@ def hv_curves():
                 continue
             C = curve(list(by[a].values()), grid)
             m, s = C.mean(0), C.std(0)
-            ax.plot(grid, m, color=col, ls=ls, label=f"{lab} ({len(C)})")
+            ax.plot(grid, m, color=col, ls=ls,
+                    label=f"{cited(lab, a)} ({len(C)})")
             ax.fill_between(grid, m - s / np.sqrt(len(C)), m + s / np.sqrt(len(C)),
                             color=col, alpha=0.15, lw=0)
         ax.set_title(TITLE[w], fontsize=7)
@@ -164,7 +198,8 @@ def metrics16():
             if sub:
                 ax.scatter([r["NMED"] for r in sub], [r[key] for r in sub],
                            s=7 if mk != "x" else 9, marker=mk, color=col,
-                           lw=0.5 if mk == "x" else 0, alpha=0.75, label=lib)
+                           lw=0.5 if mk == "x" else 0, alpha=0.75,
+                           label=cited(lib, lib))
         ax.step([p["NMED"] for p in fr], [p[key] for p in fr], where="post",
                 color="#c62828", lw=1.1, label="Approx-LG front")
         ax.set_xscale("log")
@@ -233,7 +268,8 @@ def mre8():
             sub = [r for r in refs if r["lib"] == lib]
             ax.scatter([r["MRE"] for r in sub],
                        [cost(r["area"], r["delay"], r["power"]) for r in sub],
-                       s=5, marker=mk, color=col, lw=0, alpha=0.8, label=lib)
+                       s=5, marker=mk, color=col, lw=0, alpha=0.8,
+                       label=cited(lib, lib))
         for b, lb, col, ls in ((by, "NMED objective", "#c62828", "--"),
                                (bym, "MRE objective", "#c62828", "-"),
                                (bymx, "MRE objective, +E", "#ef6c00", "-")):
@@ -273,3 +309,5 @@ if __name__ == "__main__":
             print("ok", f.__name__)
         except Exception as e:                       # pragma: no cover
             print("!!", f.__name__, type(e).__name__, e)
+    with open(os.path.join(FIGS, "cites.json"), "w") as fh:
+        json.dump(USED, fh, indent=1, sort_keys=True)
