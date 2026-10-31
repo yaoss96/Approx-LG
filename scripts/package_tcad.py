@@ -1,10 +1,11 @@
-"""Bundle the TCAD manuscript and supplement for submission.
+"""Bundle the manuscript and supplement for submission.
 
 Collects every file the two documents read -- section sources, macro files,
 table bodies, figures, bibliography -- plus both PDFs into
-paper/tcad/dist/approxlg_tcad_<date>.zip, after checking that no placeholder
-is left (\\pend or an input of pending.tex) and that both PDFs are newer than
-their sources.
+paper/tcad/dist/approxlg_<JOURNAL>_<date>.zip, after checking that no
+placeholder is left (\\pend or an input of pending.tex) and that both PDFs are
+newer than their sources.  The manuscript was retargeted from TCAD to TVLSI
+in the same directory; the TCAD packages stay in dist/ under their own name.
 
     python scripts/package_tcad.py
 """
@@ -17,6 +18,7 @@ import zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PAPER = os.path.join(ROOT, "paper", "tcad")
+JOURNAL = "tvlsi"
 
 
 def read(name):
@@ -67,7 +69,7 @@ def main():
         sys.exit(1)
     os.makedirs(os.path.join(PAPER, "dist"), exist_ok=True)
     out = os.path.join(PAPER, "dist",
-                       f"approxlg_tcad_{datetime.date.today():%Y%m%d}.zip")
+                       f"approxlg_{JOURNAL}_{datetime.date.today():%Y%m%d}.zip")
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for f in sorted(files):
             z.write(os.path.join(PAPER, f), f)

@@ -164,13 +164,15 @@ def search_table(runs):
             k += 1
         note = (None if k == len(cols) else
                 r"run at $8\times8$ only" if k == 1 else "not run")
+        # plain rules only: the journal template loads neither booktabs nor
+        # multirow, so groups are ruled off and a note names its first row
         if lines and arms:
-            lines.append(r"\addlinespace[3pt]")
+            lines.append(r"\hline")
         for i, a in enumerate(arms):
             cells = [cell(a, w) for w in cols[:k]]
             if note is not None:
                 span = len(cols) - k
-                txt = rf"\multirow{{{len(arms)}}}{{*}}{{{note}}}" if i == 0 else ""
+                txt = note if i == 0 else ""
                 cells.append(txt if span == 1 else
                              rf"\multicolumn{{{span}}}{{c}}{{{txt}}}")
             lines.append(f"{LABEL[a]} & " + " & ".join(cells) + r" \\")
@@ -571,7 +573,7 @@ def ref_compare(runs):
                 if ww == w and algo != "approxlg":
                     tabmin.append(min(wa, wp))
             if lines and group != last_group:
-                lines.append(r"\addlinespace[2pt]")
+                lines.append(r"\hline")
             lines.append(f"{group if group != last_group else ''} & {lab} & " +
                          " & ".join(cells) + r" \\")
             last_group = group
