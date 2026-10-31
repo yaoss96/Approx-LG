@@ -36,12 +36,13 @@ from analyze_stats import holm, paired                       # noqa: E402
 
 # width key -> campaign tags holding its runs
 WIDTHS = {
-    "8": ["n8", "n8L", "n8abl", "n8p", "n8moo"],
+    "8": ["n8", "n8L", "n8abl", "n8p", "n8moo", "n8hyb", "n8hyb2", "n8hybs"],
     "16u": ["n16u", "n16umoo", "n16uabl", "n16uhyb", "n16ufill"],
-    "16s": ["n16s", "n16smoo", "n16sfill"],
+    "16s": ["n16s", "n16smoo", "n16sfill", "n16shyb", "n16shyb2", "n16shybs"],
     "32u": ["n32u", "n32ufill", "n32ufill_e2", "n32ufill_e3", "n32ufill_e4",
             "n32ufill_e5", "n32ufill_e67", "n32ufill_e8", "n32ufill_e9",
-            "n32ufill_bc04", "n32ufill_bc59", "n32ufill_lo", "n32ufill_ga8"],
+            "n32ufill_bc04", "n32ufill_bc59", "n32ufill_lo", "n32ufill_ga8",
+            "n32uhyb", "n32uhybs"],
     "8mre": ["n8mre"],
     "8mrex": ["n8mrex"],
     # the full system re-run on the 16x16 ablation's seeds two months later
@@ -136,8 +137,7 @@ def search_table(runs):
     """One row per arm, one column per width: HV mean (CV, %) [runs].
 
     Arms are grouped by the widths they were run at, and the widths a group
-    was not run at are one labelled cell rather than a column of dashes.  The
-    hybrid arms, run at one width only, are reported in Table summary."""
+    was not run at are one labelled cell rather than a column of dashes."""
     cols = ["8", "16u", "16s", "32u"]
 
     def cell(a, w):
@@ -147,7 +147,8 @@ def search_table(runs):
         hv = np.array([x["hv"] for x in r.values()])
         return f"{hv.mean():.4f} ({100 * hv.std() / hv.mean():.1f}) [{len(hv)}]"
 
-    groups = [["nsga2", "smsemoa", "approxlg_sham", "approxlg"],
+    groups = [["nsga2", "smsemoa", "approxlg_sham", "approxlg",
+               "approxlg_sms_sham", "approxlg_sms"],
               ["random", "mobo", "nsga2_rf", "nsga2_expert", "nsga2_llmprior"],
               ["ga", "eamva", "biased_ga", "llm_only"]]
     lines = []
@@ -171,6 +172,13 @@ def search_table(runs):
             lines.append(f"{LABEL[a]} & " + " & ".join(cells) + r" \\")
     with open(os.path.join(TABS, "search_all.tex"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
+    # the text names the top arm of each width: print it to check
+    for w in cols:
+        means = {a: np.mean([x["hv"] for x in runs[w][a].values()])
+                 for g in groups for a in g if a in runs[w]}
+        top = sorted(means, key=means.get, reverse=True)[:2]
+        print(f"best arm {w:4s} " + ", ".join(
+            f"{LABEL[a]} {means[a]:.4f}" for a in top))
     # macros: means per arm and width (the MRE campaigns as HV...Eightmre)
     for w in cols + ["8mre", "8mrex"]:
         for a, r in runs[w].items():
@@ -199,7 +207,7 @@ def search_table(runs):
     wtag = {"16u": "SixteenU", "16s": "SixteenS", "32u": "ThirtyTwo"}
     short = {"random": "Rand", "ga": "Ga", "llm_only": "LlmOnly",
              "eamva": "Eamva", "biased_ga": "Bcga", "nsga2_rf": "Rf",
-             "mobo": "Bo", "smsemoa": "Sms"}
+             "mobo": "Bo", "smsemoa": "Sms", "approxlg_sms": "AlgSms"}
     weak = ("random", "ga", "llm_only", "eamva", "biased_ga")
     gaps = defaultdict(list)
     for w, t in wtag.items():
@@ -214,6 +222,9 @@ def search_table(runs):
     if "ga" in runs["8"]:
         m = np.mean([x["hv"] for x in runs["8"]["ga"].values()])
         mac("GapGaEight", f"{100 * (1 - m / ref):.0f}")
+    if "approxlg_sms" in runs["8"]:
+        m = np.mean([x["hv"] for x in runs["8"]["approxlg_sms"].values()])
+        mac("MeanVNsgaAlgSmsEight", f"{100 * (m / ref - 1):+.1f}")
     for a in weak:
         if len(gaps[a]) == len(wtag):
             mac(f"Gap{short[a]}Wide",
@@ -348,11 +359,13 @@ def families(runs):
             r = paired({"x": hvx, "b": hvb}, "x", "b")
             fam["retarget"].append((f"{LABEL[a]}: with style E vs without",
                                     "8mre", a + "_ext", a, r))
-    # complementarity: the guidance on top of SMS-EMOA's selection
-    add("hybrid", "16u", "approxlg_sms", "approxlg_sms_sham")
-    add("hybrid", "16u", "approxlg_sms", "smsemoa")
-    add("hybrid", "16u", "approxlg_sms_sham", "smsemoa")
-    add("hybrid", "16u", "approxlg_sms", "approxlg")
+    # complementarity: the guidance on top of SMS-EMOA's selection, at every
+    # width it was run at
+    for w in ("8", "16u", "16s", "32u"):
+        add("hybrid", w, "approxlg_sms", "approxlg_sms_sham")
+        add("hybrid", w, "approxlg_sms", "smsemoa")
+        add("hybrid", w, "approxlg_sms_sham", "smsemoa")
+        add("hybrid", w, "approxlg_sms", "approxlg")
     for f, rows in fam.items():
         adj = holm([r["p"] for *_, r in rows])
         for (lab, w, x, y, r), pa in zip(rows, adj):
@@ -421,6 +434,25 @@ def fam_macros(fam):
             mac(k + "A", f"{r['a12']:.2f}")
             # unsigned, one decimal: for running prose ("improves by 2.3%")
             mac(k + "Abs", f"{abs(r['delta']):.1f}")
+
+
+def hybrid_macros(fam):
+    """The hybrid's margins over the widths from 16 bits as ranges, for the
+    text, with a check that the text's direction holds at every width."""
+    rows = {(w, x, y): r for lab, w, x, y, r in fam.get("hybrid", [])}
+    mac("NHybridTests", f"{len(fam.get('hybrid', []))}")
+    wide = ("16u", "16s", "32u")
+    for x, y, k in (("approxlg_sms", "approxlg_sms_sham", "HybVSham"),
+                    ("approxlg_sms", "smsemoa", "HybVSms"),
+                    ("approxlg_sms_sham", "smsemoa", "ShamSmsVSms")):
+        d = [rows[(w, x, y)]["delta"] for w in wide if (w, x, y) in rows]
+        if len(d) < len(wide):
+            continue
+        sign = "+" if k == "ShamSmsVSms" else ""
+        mac(f"{k}WideMin", f"{min(d):{sign}.1f}")
+        mac(f"{k}WideMax", f"{max(d):{sign}.1f}")
+        if k != "ShamSmsVSms" and min(d) <= 0:
+            print(f"!! {x} not above {y} at every width from 16 bits: {d}")
 
 
 def ablation_table(fam):
@@ -549,8 +581,8 @@ def ref_compare(runs):
             low = {"n": [], "nm": []}
             for algo in ("random", "ga", "nsga2", "smsemoa", "mobo",
                          "nsga2_rf", "nsga2_expert", "nsga2_llmprior",
-                         "approxlg_sham", "approxlg", "eamva", "llm_only",
-                         "biased_ga"):
+                         "approxlg_sham", "approxlg", "approxlg_sms_sham",
+                         "approxlg_sms", "eamva", "llm_only", "biased_ga"):
                 fr = pooled_front(runs, w, algo, seeds)
                 if not fr:
                     continue
@@ -576,7 +608,8 @@ def ref_compare(runs):
         # run what one search reaches (median and worst over the seeds)
         if n in (16, 32):
             wn = {16: "Sixteen", 32: "ThirtyTwo"}[n]
-            for algo, short in (("approxlg", "Alg"), ("nsga2", "Nsga")):
+            for algo, short in (("approxlg", "Alg"), ("nsga2", "Nsga"),
+                                ("approxlg_sms", "AlgSms")):
                 for metrics, tagm in ((("NMED",), "N"), (("NMED", "MRE"), "NM")):
                     beat = []
                     for s, r in sorted(runs[w].get(algo, {}).items()):
@@ -1079,6 +1112,7 @@ def main():
     search_table(runs)
     fam = families(runs)
     mac("NSpaceTests", f"{len(fam.get('space', []))}")
+    hybrid_macros(fam)
     wallclock(runs, fam)
     summary_table(fam)
     fam_macros(fam)

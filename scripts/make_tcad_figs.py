@@ -37,9 +37,11 @@ ARMS = [("nsga2", "NSGA-II", "#1565c0", "--"),
         ("mobo", "BO", "#6a1b9a", (0, (1, 1))),
         ("nsga2_rf", "RF surrogate", "#5d4037", (0, (2, 1))),
         ("approxlg_sham", "sham", "#f9a825", (0, (4, 1, 1, 1))),
-        ("approxlg", "Approx-LG", "#c62828", "-")]
-TAGS = {"8": ["n8", "n8L", "n8abl", "n8moo"],
-        "16u": ["n16u", "n16umoo"], "32u": ["n32u"]}
+        ("approxlg", "Approx-LG", "#c62828", "-"),
+        ("approxlg_sms", "Approx-LG on SMS-EMOA", "#000000", "-")]
+TAGS = {"8": ["n8", "n8L", "n8abl", "n8moo", "n8hyb", "n8hyb2"],
+        "16u": ["n16u", "n16umoo", "n16uhyb"],
+        "32u": ["n32u", "n32ufill", "n32uhyb"]}
 TITLE = {"8": r"$8\times8$", "16u": r"$16\times16$ (unsigned)",
          "32u": r"$32\times32$ (unsigned)"}
 BUDGET = {"8": 400, "16u": 500, "32u": 500}
