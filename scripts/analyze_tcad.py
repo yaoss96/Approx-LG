@@ -571,6 +571,29 @@ def ref_compare(runs):
                     mac(f"RefArms{wn}{tagm.upper()}Min", f"{k}")
                     print(f"refs n={n} {tagm:2s}: fewest beaten by any arm but "
                           f"BC-GA {k}/{len(refs)} ({LABEL[a]})")
+        # the same count for the front of a single run rather than the pooled
+        # one: the pooled front shows what the template can reach, a single
+        # run what one search reaches (median and worst over the seeds)
+        if n in (16, 32):
+            wn = {16: "Sixteen", 32: "ThirtyTwo"}[n]
+            for algo, short in (("approxlg", "Alg"), ("nsga2", "Nsga")):
+                for metrics, tagm in ((("NMED",), "N"), (("NMED", "MRE"), "NM")):
+                    beat = []
+                    for s, r in sorted(runs[w].get(algo, {}).items()):
+                        fr = [dict(q, ADP=q["area"] * q["delay"],
+                                   PDP=q["power"] * q["delay"])
+                              for q in r["pareto"]]
+                        beat.append(sum(
+                            (a := iso(fr, ref, lambda d: d["ADP"], metrics))
+                            is not None and a["ADP"] < ref["ADP"]
+                            for ref in refs))
+                    if beat:
+                        mac(f"RefSingle{wn}{short}{tagm}Med",
+                            f"{np.median(beat):.0f}")
+                        mac(f"RefSingle{wn}{short}{tagm}Min", f"{min(beat)}")
+                        print(f"refs n={n} {algo} single runs, {tagm}: ADP "
+                              f"beaten median {np.median(beat):.0f}, min "
+                              f"{min(beat)} of {len(refs)}")
     with open(os.path.join(TABS, "refcmp.tex"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
     return out
@@ -866,6 +889,37 @@ def ablation_macros(runs, fam):
                 mac(f"LlmFront{k}{tag}", f"{100 * front:.0f}")
 
 
+def stimulus_macros():
+    """The out-of-sample check of the error estimates
+    (scripts/analyze_stimulus.py): change of NMED per front design on an
+    independent stimulus, and the comparisons recomputed on it."""
+    p = os.path.join(TABS, "stimulus.json")
+    if not os.path.exists(p):
+        return
+    s = json.load(open(p))
+    tag = {"16u": "SixteenU", "16s": "SixteenS", "32u": "ThirtyTwo"}
+    for w, d in s.items():
+        t = tag[w]
+        mac(f"StimDesigns{t}", f"{d['designs']:,}".replace(",", "\\,"))
+        mac(f"StimNmedMed{t}", f"{d['nmed_median_abs_pct']:.2f}")
+        m = d["nmed_mean_pct"]
+        mac(f"StimNmedMean{t}", "0.00" if abs(m) < 0.005 else f"{m:+.2f}")
+        mac(f"StimMreMed{t}", f"{d['mre_median_abs_pct']:.2f}")
+        mac(f"StimAlgVSham{t}", f"{d['approxlg_vs']['approxlg_sham']['new']:+.2f}")
+    mac("StimNmedMedMax", f"{max(d['nmed_median_abs_pct'] for d in s.values()):.2f}")
+    mac("StimNmedMeanMax",
+        f"{max(abs(d['nmed_mean_pct']) for d in s.values()):.2f}")
+    mac("StimHvMax", f"{max(abs(v) for d in s.values() for v in d['hv_change_pct'].values()):.2f}")
+    # do the paper's comparisons of Approx-LG keep their sign, and the arms
+    # their order, when every front is re-scored on the new stimulus?
+    signs = all((c["old"] > 0) == (c["new"] > 0)
+                for d in s.values() for c in d["approxlg_vs"].values())
+    order = all(d["rank_old"] == d["rank_new"] for d in s.values())
+    print(f"stimulus: signs kept {signs}, order kept {order}")
+    mac("StimSignsKept", "every" if signs else "not every")
+    mac("StimOrderKept", "the same" if order else "a changed")
+
+
 def charcount_macros():
     """Distinct characterized designs (scripts/count_characterized.py)."""
     p = os.path.join(TABS, "charcount.json")
@@ -1020,6 +1074,7 @@ def main():
     apps_mre_macros()
     mech_macros()
     charcount_macros()
+    stimulus_macros()
     runs = load()
     search_table(runs)
     fam = families(runs)
